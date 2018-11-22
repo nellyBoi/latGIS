@@ -8,6 +8,8 @@ Created on Sun Jun 17 21:13:56 2018
 direction pixel prediction - unit test
 
 """
+import sys, os
+sys.path.append(os.path.join(sys.path[0],'..','..','Src','Tracking'))
 
 import numpy as np
 import sys
