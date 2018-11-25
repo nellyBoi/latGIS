@@ -22,6 +22,7 @@ the Street View vehicle. This is often, but not always, flat horizontal.
 Positive values angle the camera up (with 90 degrees indicating straight up); 
 negative values angle the camera down (with -90 indicating straight down).
 
+TODO: definitions of inputs/outputs
 INPUT:
     (TO CLASS) W: estimated closest point of desired target to direction vector
         in ECEF coordinates (meters). Each object must be instantiated with W
@@ -48,7 +49,7 @@ ASSUMPTIONS:
     - LOS vector is constant from frame to frame. 
     - Direction vector must be within the field of view.
 
-TO DO's: 
+TODO: 
     - move the estimated 'closest dist. to object' from defined constant to
     a class input. Also, determine how this can be a variable, not const.
     
@@ -111,6 +112,7 @@ class Object_Location_Model:
 
         # TODO: solve issue if heading is close to 360 degrees
     
+        #TODO: Start here, incorporate the heading and pitch from BOTH t1 and t2
         PIXEL_t2 = [[],[]]
         for sensorDir in [0,1]:
         
