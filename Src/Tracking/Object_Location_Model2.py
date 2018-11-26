@@ -4,8 +4,8 @@ Created on 11/22/2018
 
 @author: Nelly
 
-This class will predict the probable location of an object in frame t+1
-from knowledge of the object location in frame t, the direction of intra-frame
+This class will predict the probable location of an object in frame t2
+from knowledge of the object location in frame t1, the direction of intra-frame
 camera travel, the line-of-sight and various optical and sensor parameters. 
 This model will be used in intraframe tracking of objects, by aiding in the 
 association of object with previous tracks. 
@@ -22,24 +22,43 @@ the Street View vehicle. This is often, but not always, flat horizontal.
 Positive values angle the camera up (with 90 degrees indicating straight up); 
 negative values angle the camera down (with -90 indicating straight down).
 
-TODO: definitions of inputs/outputs
 INPUT:
     (TO CLASS) W: estimated closest point of desired target to direction vector
         in ECEF coordinates (meters). Each object must be instantiated with W
         from this class.
+        
     objRowCol: object row and column from frame t+1
-        (1x2 list)
+        ( 1x2 list )
+        
     frame_t1_ecef: camera coordinates for frame t in the rotated cartesian
         coordinate system
-        (1x3 array)
+        ( 1x3 array )
+        
     frame_t2_ecef: camera coordinates for frame t+1 in the rotated cartesian
         coordinate system
-        (1x3 array)
-    LOS: line-of-sight-vector in ECEF coordinates
-        (1x3 array)
+        ( 1x3 array )
+        
+    heading_t1: Heading of camera, measured from ENU North, clockwise for frame t1
+        ( float )
+        
+    pitch_t1: Pitch of camera, measured from level ground for frame t1. A camera 
+        facing up is positive pitch, with 90 deg being straight to the sky along
+        the normal and -90 defg being straight down.
+        ( float )
+        
+   heading_t2: Heading of camera, measured from ENU North, clockwise for frame t2
+        ( float )
+        
+    pitch_t2: Pitch of camera, measured from level ground for frame t2. A camera 
+        facing up is positive pitch, with 90 deg being straight to the sky along
+        the normal and -90 defg being straight down.
+        ( float )
+        
     LatLon: Lattitude and longitude of camera for frame_t1, used to orient 
         camera rotation in 3D space.
         (1x2 list)
+        
+    elevation: Elevation of camera at frame t1 from sea level. Default to zero
         
 OUTPUT:
     [ROW, COL] of the predicted position of an object in frame t+1
@@ -50,9 +69,9 @@ ASSUMPTIONS:
     - Direction vector must be within the field of view.
 
 TODO: 
-    - move the estimated 'closest dist. to object' from defined constant to
-    a class input. Also, determine how this can be a variable, not const.
-    
+    - Currently using W (closest dist of obj. to D vector estimate) as a param
+    that is held within the class. This may frequently change and will need to
+    be variable once this class is used for more general targets. 
 """
 import sys, os
 sys.path.append(os.path.join(sys.path[0],'..','Utilities'))
@@ -136,10 +155,19 @@ class Object_Location_Model:
             L_t2 = L_est - deltaL
             objAngle_t2 = np.arctan(self.W_est/L_t2)
             pixelsFromD = self.focalLength*np.tan(objAngle_t2)
-            #calculate final position ob object in pixel values
-            PIXEL_t2[sensorDir] = directionPixel[sensorDir] + sign*pixelsFromD
             
-       
+            # use pitch and heading to offset object location 
+            if (sensorDir == 0):
+                sensorOrientCorrect = self.focalLength*np.tan(np.abs(pitch_t2 - pitch_t1))
+                sensorOrientSign = np.sign(pitch_t2 - pitch_t1)
+            else:
+                sensorOrientCorrect = self.focalLength*np.tan(np.abs(heading_t2 - heading_t1))    
+                sensorOrientSign = -np.sign(heading_t2 - heading_t1)
+                
+            #calculate final position ob object in pixel values
+            PIXEL_t2[sensorDir] = (directionPixel[sensorDir] + sign*pixelsFromD -
+                    sensorOrientSign*sensorOrientCorrect)
+              
         return PIXEL_t2
     
 
@@ -255,15 +283,3 @@ class Object_Location_Model:
         #normalize
         return northECEF / np.linalg.norm(northECEF)
         
-    
-        
-        
-        
-    
-    
-        
-          
-    
-    
-        
-    
