@@ -59,11 +59,35 @@ def change_in_longitude(latitude, miles):
     # Find the radius of a circle around the earth at given latitude.
     r = earth_radius*math.cos(latitude*degrees_to_radians)
     return (miles/r)*radians_to_degrees
-
+latpermeter = 1/111111
 def longbasedonlat(inlat):
-    print(inlat*degrees_to_radians)
+    # Returns the number of degrees of longitude per meter
+    earth_radius = 6378 # In KM
+    degrees_to_radians = math.pi/180.0
+    #radians_to_degrees = 180.0/math.pi
     cc = math.pi*(earth_radius*2)
     eqdist = cc/360
     rr = inlat*degrees_to_radians
-    print(rr)
-    return math.cos(rr)*eqdist 
+    return 1/((math.cos(rr)*eqdist)*1000)
+
+
+
+
+
+
+import pandas as pd
+from AOIfunctions import gridgen, projcoords
+# INITIAL COORDS (TWO XY PAIRS AS OPPOSITE CORNERS OF AOI BOUNDING BOX)
+# Format as Lon, Lat to mirror X,Y notation
+xy1 = [-105.071049, 40.305424]
+xy2 = [-105.071780, 40.309820]
+minlat = min([abs(xy1[1]),abs(xy2[1])])
+
+    # WGS84 = epsg 4326
+    # World Equidistant Cylindrical = epsg 4087
+
+mgrid= gridgen(xy1, xy2, stepsize=10)
+mgrid['xxyy'] = mgrid.apply(lambda x: projcoords(4087, 4326, [x.XX, x.YY]), axis=1)
+mgrid[['xlon', 'ylat']] = mgrid['xxyy'].apply(pd.Series)
+
+mgrid.to_csv('mgridtest10.csv')
