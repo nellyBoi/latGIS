@@ -78,8 +78,20 @@ sys.path.append(os.path.join(sys.path[0],'..','Utilities'))
 import numpy as np
 from enu_to_ecef import enu2ecef
 from rotation import Rotate
+from coord_transfers import CoordTransfers
 
+class cameraData:
+    def __init__(self, LatLonEl: list, heading: float, pitch: float):
+        # instance variable unique to each instance
+        self.LatLonEl = LatLonEl   
+        self.heading = heading
+        self.pitch = pitch
+        
+  
+    
 class Object_Location_Model:
+    
+    
     
     def __init__(self, W: float):
         
@@ -96,10 +108,7 @@ class Object_Location_Model:
         self.W_est = W # (m) : estimated closest dist. to obj. from D vector.
         
     
-    def objectLocationPredictor(self, objRowCol: list, frame_t1_ecef: np.ndarray, 
-                                frame_t2_ecef: np.ndarray, heading_t1: float, pitch_t1: float,
-                                heading_t2: float, pitch_t2: float, LatLon: list, 
-                                elevation: float = 0)-> list:
+    def objectLocationPredictor(self, objRowCol: list, camData1: cameraData, camData2: cameraData, degFlag : bool = False )-> list:
         
         '''This function will be used to predict the objects location in frame t+1 
         from from knowledge of frame t, various camera parameters and the necessary
@@ -115,11 +124,23 @@ class Object_Location_Model:
             - LatLon ( of frame 1 )
             - elevation ( of frame 1 )
         '''
-        # degrees to radians
-        heading_t1 = heading_t1*self.deg2rad
-        pitch_t1 = pitch_t1*self.deg2rad
-        heading_t2 = heading_t2*self.deg2rad
-        pitch_t2 = pitch_t2*self.deg2rad
+        # this should be moved
+        coordTransfers = CoordTransfers() 
+        # transfer Latitude, Longitude to ECEF, converted to arrays
+        frame_t1_ecef = np.asarray(coordTransfers.LLE_to_ECEF(LLE = camData1.LatLonEl))
+        frame_t2_ecef = np.asarray(coordTransfers.LLE_to_ECEF(LLE = camData2.LatLonEl))
+        
+        # degrees to radians, if (degFlag == True)
+        if (degFlag == 1):    
+            heading_t1 = camData1.heading*self.deg2rad
+            pitch_t1 = camData1.pitch*self.deg2rad
+            heading_t2 = camData2.heading*self.deg2rad
+            pitch_t2 = camData2.pitch*self.deg2rad
+        else:
+            heading_t1 = camData1.heading
+            pitch_t1 = camData1.pitch
+            heading_t2 = camData2.heading
+            pitch_t2 = camData2.pitch
         
         # distance moved along direction vector
         deltaL = np.sqrt((frame_t2_ecef[0] - frame_t1_ecef[0])**2 + \
@@ -127,11 +148,11 @@ class Object_Location_Model:
                          (frame_t2_ecef[2] - frame_t1_ecef[2])**2)
         # get direction of movement in camera coordinates
         directionPixel = self.getDirectionPixel(frame_t1_ecef, frame_t2_ecef, heading_t1,
-        pitch_t1, LatLon, elevation)
+        pitch_t1, camData1.LatLonEl)
 
         # TODO: solve issue if heading is close to 360 degrees
     
-        #TODO: Start here, incorporate the heading and pitch from BOTH t1 and t2
+        
         PIXEL_t2 = [[],[]]
         for sensorDir in [0,1]:
         
@@ -154,26 +175,29 @@ class Object_Location_Model:
             # shorter than the previous length.
             L_t2 = L_est - deltaL
             objAngle_t2 = np.arctan(self.W_est/L_t2)
-            pixelsFromD = self.focalLength*np.tan(objAngle_t2)
             
-            # use pitch and heading to offset object location 
+            # correct for heading and pitch
             if (sensorDir == 0):
-                sensorOrientCorrect = self.focalLength*np.tan(np.abs(pitch_t2 - pitch_t1))
-                sensorOrientSign = np.sign(pitch_t2 - pitch_t1)
+                # add to obj angle before computing pixel offset
+                # NOTE: The sign of this value represents object pixel > direction pixel
+                sensorOrientCorrectAng = sign*objAngle_t2 + (pitch_t2 - pitch_t1)
+            
+                
             else:
-                sensorOrientCorrect = self.focalLength*np.tan(np.abs(heading_t2 - heading_t1))    
-                sensorOrientSign = -np.sign(heading_t2 - heading_t1)
+                sensorOrientCorrectAng = sign*objAngle_t2 + (heading_t1 - heading_t2)
+                
                 
             #calculate final position ob object in pixel values
-            PIXEL_t2[sensorDir] = (directionPixel[sensorDir] + sign*pixelsFromD -
-                    sensorOrientSign*sensorOrientCorrect)
+            sensorOrientCorrectAngSign = np.sign(sensorOrientCorrectAng)
+            sensorOrientCorrect = (sensorOrientCorrectAngSign*self.focalLength*
+                                   np.tan(np.abs(sensorOrientCorrectAng)))
+            PIXEL_t2[sensorDir] = directionPixel[sensorDir] + sensorOrientCorrect
               
         return PIXEL_t2
     
 
     def getDirectionPixel(self, frame_t1_ecef: np.ndarray, frame_t2_ecef: np.ndarray,
-                          heading: float, pitch: float, LatLon: list, 
-                          elevation: float = 0)-> list:
+                          heading: float, pitch: float, LatLonEl: list)-> list:
         
         '''This function will calculate to direction of the camera movement in
         pixel coordinates.
@@ -189,10 +213,10 @@ class Object_Location_Model:
             '''
         
         # get normal of earth at current frame t
-        Normal = self.calculateNormal(LatLon)
+        Normal = self.calculateNormal(LatLonEl[0:2])
         
         # get North vector at current frame t in ECEF
-        North = self.getNorthECEF(LatLon, elevation)
+        North = self.getNorthECEF(LatLonEl)
         
         # rotate North about Normal by heading degrees to get LOS, zero pitch
         # NOTE: Since the current rotation routine uses two points rather than a
@@ -202,7 +226,7 @@ class Object_Location_Model:
         p1x = frame_t1_ecef[0] + 1000*Normal[0]
         p1y = frame_t1_ecef[1] + 1000*Normal[1]
         p1z = frame_t1_ecef[2] + 1000*Normal[2]
-        LOS_noPitch = Rotate(North, frame_t1_ecef.tolist(), [p1x, p1y, p1z], heading) 
+        LOS_noPitch = Rotate(North, frame_t1_ecef, [p1x, p1y, p1z], heading) 
         LOS_noPitch = LOS_noPitch/np.linalg.norm(LOS_noPitch)
         
         # calculation direction vector in ECEF
@@ -237,11 +261,11 @@ class Object_Location_Model:
             
         return [ROW, COL]
     
-    def calculateNormal(self, LatLon):
+    def calculateNormal(self, LatLonEl):
         
         # LatLon should be 1x2 list
-        Lat = self.deg2rad*LatLon[0]
-        Lon = self.deg2rad*LatLon[1]
+        Lat = self.deg2rad*LatLonEl[0]
+        Lon = self.deg2rad*LatLonEl[1]
         
         normal = np.zeros((3,))
         normal[0] = np.cos(Lat)*np.cos(Lon)
@@ -262,7 +286,7 @@ class Object_Location_Model:
         FOV = self.FOV
         # focal length calculation is based off 2nd sensor size value, numCols
         numCols = self.sensorSize[1]
-        focalLength = numCols/(2*np.arctan(FOV/2))
+        focalLength = numCols/(2*np.arctan(self.deg2rad*FOV/2))
         return focalLength
     
     def calcPixelOffset(self, angle):
@@ -272,12 +296,12 @@ class Object_Location_Model:
         offset = (self.focalLength)*np.tan(angle)
         return offset
     
-    def getNorthECEF(self, LatLon: list, elevation: float = 0) -> np.ndarray:
+    def getNorthECEF(self, LatLonEl: list) -> np.ndarray:
         
         # create p0, origin of ENU in ECEF
-        p0x, p0y, p0z = enu2ecef(0, 0, 0, LatLon[0], LatLon[1], elevation)
+        p0x, p0y, p0z = enu2ecef(0, 0, 0, LatLonEl[0], LatLonEl[1], LatLonEl[2])
         # create p1, point on North axis of ENU in ECEF
-        p1x, p1y, p1z = enu2ecef(0, 1000, 0, LatLon[0], LatLon[1], elevation)
+        p1x, p1y, p1z = enu2ecef(0, 1000, 0, LatLonEl[0], LatLonEl[1], LatLonEl[2])
         
         northECEF = np.array([(p1x - p0x), (p1y - p0y), (p1z - p0z)])
         #normalize
