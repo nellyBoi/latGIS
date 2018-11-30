@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on 11/22/2018
+Created on 11/29/2018
 
 @author: Nelly
 
@@ -22,6 +22,12 @@ the Street View vehicle. This is often, but not always, flat horizontal.
 Positive values angle the camera up (with 90 degrees indicating straight up); 
 negative values angle the camera down (with -90 indicating straight down).
 
+CLASS DEFINATIONS:
+    cameraData:
+        LatLonEl: [Latitude (deg), Longitude (deg), Elevation(m)] -> List
+        heading:  heading of image (deg or rad)
+        pitch:    pitch of image (deg or rad)
+
 INPUT:
     (TO CLASS) W: estimated closest point of desired target to direction vector
         in ECEF coordinates (meters). Each object must be instantiated with W
@@ -30,43 +36,20 @@ INPUT:
     objRowCol: object row and column from frame t+1
         ( 1x2 list )
         
-    frame_t1_ecef: camera coordinates for frame t in the rotated cartesian
-        coordinate system
-        ( 1x3 array )
-        
-    frame_t2_ecef: camera coordinates for frame t+1 in the rotated cartesian
-        coordinate system
-        ( 1x3 array )
-        
-    heading_t1: Heading of camera, measured from ENU North, clockwise for frame t1
-        ( float )
-        
-    pitch_t1: Pitch of camera, measured from level ground for frame t1. A camera 
-        facing up is positive pitch, with 90 deg being straight to the sky along
-        the normal and -90 defg being straight down.
-        ( float )
-        
-   heading_t2: Heading of camera, measured from ENU North, clockwise for frame t2
-        ( float )
-        
-    pitch_t2: Pitch of camera, measured from level ground for frame t2. A camera 
-        facing up is positive pitch, with 90 deg being straight to the sky along
-        the normal and -90 defg being straight down.
-        ( float )
-        
-    LatLon: Lattitude and longitude of camera for frame_t1, used to orient 
-        camera rotation in 3D space.
-        (1x2 list)
-        
-    elevation: Elevation of camera at frame t1 from sea level. Default to zero
+    camData1: cameraData instance for frame 1.
+    
+    camData2: cameraData instance for frame 2.
+    
+    degFlag: True is camData heading and pitch in degrees.
         
 OUTPUT:
     [ROW, COL] of the predicted position of an object in frame t+1
         (1x2 list)
-    
-ASSUMPTIONS:
-    - LOS vector is constant from frame to frame. 
-    - Direction vector must be within the field of view.
+
+ASSUMPTIONS: 
+    - Constant Field-Of-View (FOV)
+    - All objects detected with the same instance have same 'W' estimation. For
+      applications with multiple 'W' applications, have multiple 'W's.
 
 TODO: 
     - Currently using W (closest dist of obj. to D vector estimate) as a param
@@ -115,16 +98,12 @@ class Object_Location_Model:
         geometrical arguments.
         INPUT: 
             - objRowCol ( in frame 1 )
-            - frame_t1_ecef
-            - frame_t2_ecef
-            - heading_t1 ( degrees )
-            - pitch_t1 ( degrees )
-            - heading_t2 ( degrees )
-            - pitch_t2 ( degrees )
-            - LatLon ( of frame 1 )
-            - elevation ( of frame 1 )
+            - camData1 ( degrees )
+            - camData2 ( degrees )
+            - degFlag ( degrees )
+
         '''
-        # this should be moved
+        # TODO: this should be moved
         coordTransfers = CoordTransfers() 
         # transfer Latitude, Longitude to ECEF, converted to arrays
         frame_t1_ecef = np.asarray(coordTransfers.LLE_to_ECEF(LLE = camData1.LatLonEl))
@@ -146,9 +125,14 @@ class Object_Location_Model:
         deltaL = np.sqrt((frame_t2_ecef[0] - frame_t1_ecef[0])**2 + \
                          (frame_t2_ecef[1] - frame_t1_ecef[1])**2 + \
                          (frame_t2_ecef[2] - frame_t1_ecef[2])**2)
-        # get direction of movement in camera coordinates
-        directionPixel = self.getDirectionPixel(frame_t1_ecef, frame_t2_ecef, heading_t1,
-        pitch_t1, camData1.LatLonEl)
+        
+        # if the camera has not moved place the direction pixel in the center of the image
+        if (deltaL == 0):
+            directionPixel = [self.sensorSize[0]/2, self.sensorSize[1]/2]
+        else:
+            # get direction of movement in camera coordinates
+            directionPixel = self.getDirectionPixel(frame_t1_ecef, frame_t2_ecef, heading_t1,
+                                                    pitch_t1, camData1.LatLonEl)
 
         # TODO: solve issue if heading is close to 360 degrees
     
@@ -174,7 +158,12 @@ class Object_Location_Model:
             # since direction vector is within the FOV, the new length must be 
             # shorter than the previous length.
             L_t2 = L_est - deltaL
-            objAngle_t2 = np.arctan(self.W_est/L_t2)
+            # if we have passed to object and the new L is negative, the angle
+            # may be nagative and will need to be adjusted by PI.
+            if (L_t2 < 0):
+                objAngle_t2 = np.pi - np.abs(np.arctan(self.W_est/L_t2))
+            else:
+                objAngle_t2 = np.abs(np.arctan(self.W_est/L_t2))
             
             # correct for heading and pitch
             if (sensorDir == 0):
@@ -185,12 +174,17 @@ class Object_Location_Model:
                 
             else:
                 sensorOrientCorrectAng = sign*objAngle_t2 + (heading_t1 - heading_t2)
+            
+            # if angle from LOS to object if greater than pi/2 object cannot even
+            # project onto the same plane as the focal plane.
+            if (sensorOrientCorrectAng > np.pi/2):
+                sensorOrientCorrect = np.nan
+            else:
+                #calculate final position ob object in pixel values
+                sensorOrientCorrectAngSign = np.sign(sensorOrientCorrectAng)
+                sensorOrientCorrect = (sensorOrientCorrectAngSign*self.focalLength*
+                                       np.tan(np.abs(sensorOrientCorrectAng)))
                 
-                
-            #calculate final position ob object in pixel values
-            sensorOrientCorrectAngSign = np.sign(sensorOrientCorrectAng)
-            sensorOrientCorrect = (sensorOrientCorrectAngSign*self.focalLength*
-                                   np.tan(np.abs(sensorOrientCorrectAng)))
             PIXEL_t2[sensorDir] = directionPixel[sensorDir] + sensorOrientCorrect
               
         return PIXEL_t2
@@ -206,8 +200,7 @@ class Object_Location_Model:
             - frame_t2_ecef
             - heading
             - pitch
-            - LatLon
-            - elevation (default to zero)
+            - LatLonEl
         OUTPUT:
             - direction pixel [ row , col ]
             '''
@@ -226,6 +219,7 @@ class Object_Location_Model:
         p1x = frame_t1_ecef[0] + 1000*Normal[0]
         p1y = frame_t1_ecef[1] + 1000*Normal[1]
         p1z = frame_t1_ecef[2] + 1000*Normal[2]
+        # TODO: There is an error here with certain rotations
         LOS_noPitch = Rotate(North, frame_t1_ecef, [p1x, p1y, p1z], heading) 
         LOS_noPitch = LOS_noPitch/np.linalg.norm(LOS_noPitch)
         
@@ -305,5 +299,5 @@ class Object_Location_Model:
         
         northECEF = np.array([(p1x - p0x), (p1y - p0y), (p1z - p0z)])
         #normalize
-        return northECEF / np.linalg.norm(northECEF)
+        return northECEF # turn on to normalize / np.linalg.norm(northECEF)
         
