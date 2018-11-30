@@ -71,10 +71,7 @@ class cameraData:
         self.pitch = pitch
         
   
-    
 class Object_Location_Model:
-    
-    
     
     def __init__(self, W: float):
         
@@ -255,6 +252,7 @@ class Object_Location_Model:
             
         return [ROW, COL]
     
+    
     def calculateNormal(self, LatLonEl):
         
         # LatLon should be 1x2 list
@@ -283,12 +281,14 @@ class Object_Location_Model:
         focalLength = numCols/(2*np.arctan(self.deg2rad*FOV/2))
         return focalLength
     
+    
     def calcPixelOffset(self, angle):
         
         # NOTE: angle must be positive
         angle = np.absolute(angle)
         offset = (self.focalLength)*np.tan(angle)
         return offset
+    
     
     def getNorthECEF(self, LatLonEl: list) -> np.ndarray:
         
