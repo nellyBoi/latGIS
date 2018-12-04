@@ -62,14 +62,7 @@ import numpy as np
 from enu_to_ecef import enu2ecef
 from rotation import Rotate
 from coord_transfers import CoordTransfers
-
-class cameraData:
-    def __init__(self, LatLonEl: list, heading: float, pitch: float):
-        # instance variable unique to each instance
-        self.LatLonEl = LatLonEl   
-        self.heading = heading
-        self.pitch = pitch
-        
+from latGIS_containers import CameraData        
   
 class Object_Location_Model:
     
@@ -88,7 +81,7 @@ class Object_Location_Model:
         self.W_est = W # (m) : estimated closest dist. to obj. from D vector.
         
     
-    def objectLocationPredictor(self, objRowCol: list, camData1: cameraData, camData2: cameraData, degFlag : bool = False )-> list:
+    def objectLocationPredictor(self, objRowCol: list, camData1: CameraData, camData2: CameraData, degFlag : bool = False )-> list:
         
         '''This function will be used to predict the objects location in frame t+1 
         from from knowledge of frame t, various camera parameters and the necessary
