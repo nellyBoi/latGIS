@@ -13,6 +13,7 @@ movement from image to image is predicted.
 """
 import sys, os
 sys.path.append(os.path.join(sys.path[0],'..','..','Src','Tracking'))
+sys.path.append(os.path.join(sys.path[0],'..','..','Src','Utilities'))
 
 import numpy as np
 import sys

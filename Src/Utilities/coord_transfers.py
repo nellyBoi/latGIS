@@ -65,7 +65,7 @@ class CoordTransfers:
     def ECEF_to_LLE(self, ECEF):
         
         # meters, meters, meters
-        x, y, z = ECEF[0], ECEF[1], ECEF[2]
+        x, y, z = float(ECEF[0]), float(ECEF[1]), float(ECEF[2])
         
         # calculatons
         b = sqrt(self.a**2 * (1-self.E**2))
