@@ -11,6 +11,9 @@ This unit test will check the 'Object_Location_Model' in which an objects
 movement from image to image is predicted.
 
 """
+import sys, os
+sys.path.append(os.path.join(sys.path[0],'..','..','Src','Tracking'))
+
 import numpy as np
 import sys
 sys.path.append('..//Utilities')

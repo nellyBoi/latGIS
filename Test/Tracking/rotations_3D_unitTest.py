@@ -14,6 +14,9 @@ be in the same direction as normal.
 ALL 8 QUADRANTS TESTED. 
 
 """
+import sys, os
+sys.path.append(os.path.join(sys.path[0],'..','..','Src','Tracking'))
+
 import numpy as np
 
 # instantiate the class
