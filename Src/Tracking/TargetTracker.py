@@ -12,12 +12,17 @@ class TargetTracker:
     def __init__(self, gateSize: int):
         
         self.gateSize = gateSize # size of gate in pixels
-        
+        self.assignmentAlgorithm = Munkres()
         # TODO deal with track ID's, data storage, and do we do triangulation 
         # here or do we save that for somewhere else?
         
-    def generateTracks():
-        pass # YOU ARE HERE
+    def generateTracks(self, observations: list, currentTracks: list) -> list:
+        # this function ingests a list of observations in pixel (row, col) 
+        # coordinates and a list of current track predictions in (row, col) 
+        # coordinates and using a list of TODO, answer this.
+        costMatrix = self.buildCostMatrix(observations, currentTracks)
+        indexes = self.assignmentAlgorithm.compute(costMatrix) 
+        
         
     def buildCostMatrix(self, observations: list, currentTracks: list) -> np.array:
         
@@ -39,11 +44,8 @@ class TargetTracker:
                 curTrk = currentTracks[trkIdx] # should be a len 2 list here
                 
                 # value of overlapping gates
-                # TODO: Something going on with NAN when there is no overlap. Do
-                #something about this!
                 matchVal = self.gate(prediction = curTrk, observation = curObs)
-                # TODO: When there is NO overlap, this should be greater than 
-                # when one matches itself. 
+
                 costVal = bestMatch - matchVal # note: if match = best, cost = 0
                 costMatrix[obsIdx, trkIdx] = costVal
                 
@@ -67,8 +69,11 @@ class TargetTracker:
         # calculate distance from prediction to observation
         dist = np.sqrt((rowPred - rowObs)**2 + (colPred - colObs)**2)
         
-        # equation taken from 'http://mathworld.wolfram.com/Circle-CircleIntersection.html'
-        R = self.gateSize
-        A = 2*R**2*np.arccos(dist/(2*R)) - (1.0/2.0)* np.sqrt((dist**2)*(2*R - dist)*(2*R + dist))
-        return A
+        if (dist >= 2*self.gateSize):
+            return 0
+        else:
+            # equation taken from 'http://mathworld.wolfram.com/Circle-CircleIntersection.html'
+            R = self.gateSize
+            A = 2*R**2*np.arccos(dist/(2*R)) - (1.0/2.0)* np.sqrt((dist**2)*(2*R - dist)*(2*R + dist))
+            return A
     
