@@ -39,7 +39,10 @@ Method:
 class ObjectionLocation:
     
     # incrementing object counter
-    ObjID = ObjID + 1
+    if ('ObjID' not in locals()):
+        ObjID = 0
+    else:
+        ObjID = ObjID + 1
     
     def __init__(self, origCameraData: CameraData, origPixel: list):
         # start Pandas.DataFrame
