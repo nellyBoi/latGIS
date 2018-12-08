@@ -23,7 +23,8 @@ import matplotlib.pyplot as plt
 from coord_transfers import CoordTransfers
 CT = CoordTransfers()
 # instantiate the class
-from Object_Location_Model2 import Object_Location_Model, cameraData
+from Object_Location_Model2 import Object_Location_Model
+from  latGIS_containers import CameraData
 
 def unitTest(expression: bool):
     if (expression == True):
@@ -55,8 +56,8 @@ ecef2 = np.array((6378137, 0, 50)) # meters, due north by 5 meters
 LLE1 = CT.ECEF_to_LLE(ecef1)
 LLE2 = CT.ECEF_to_LLE(ecef2)
 
-cam1 = cameraData(LatLonEl = LLE1, heading = 0, pitch = 0)
-cam2 = cameraData(LatLonEl = LLE2, heading = 0, pitch = 0)
+cam1 = CameraData(LatLonEl = LLE1, heading = 0, pitch = 0)
+cam2 = CameraData(LatLonEl = LLE2, heading = 0, pitch = 0)
 
 PIXELS_OUT = locModel. objectLocationPredictor(objRowCol, cam1, cam2, degFlag = True)
 unitTest(np.abs(PIXELS_OUT[0] - objRowCol[0]) < 1)
@@ -87,8 +88,8 @@ ecef2 = np.array((6378137, 0, 30)) # meters, due north by 5 meters
 LLE1 = CT.ECEF_to_LLE(ecef1)
 LLE2 = CT.ECEF_to_LLE(ecef2)
 
-cam1 = cameraData(LatLonEl = LLE1, heading = 0, pitch = 0)
-cam2 = cameraData(LatLonEl = LLE2, heading = 0, pitch = 0)
+cam1 = CameraData(LatLonEl = LLE1, heading = 0, pitch = 0)
+cam2 = CameraData(LatLonEl = LLE2, heading = 0, pitch = 0)
 
 PIXELS_OUT = locModel. objectLocationPredictor(objRowCol, cam1, cam2, degFlag = True)
 
@@ -119,8 +120,8 @@ ecef2 = np.array((3.9054825307866509e-10+30, 6378137.0, 0.0)) # meters
 LLE1 = CT.ECEF_to_LLE(ecef1)
 LLE2 = CT.ECEF_to_LLE(ecef2)
 
-cam1 = cameraData(LatLonEl = LLE1, heading = 270, pitch = 0)
-cam2 = cameraData(LatLonEl = LLE2, heading = 270, pitch = 0)
+cam1 = CameraData(LatLonEl = LLE1, heading = 270, pitch = 0)
+cam2 = CameraData(LatLonEl = LLE2, heading = 270, pitch = 0)
 
 PIXELS_OUT = locModel. objectLocationPredictor(objRowCol, cam1, cam2, degFlag = True)
 
