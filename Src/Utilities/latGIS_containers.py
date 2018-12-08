@@ -12,6 +12,7 @@ The defined containers for the latGIS Python architecture.
 '''
 from pandas import DataFrame as df
 import numpy as np
+from typing import Tuple
 
 class CameraData:
     def __init__(self, LatLonEl: list, heading: float, pitch: float):
@@ -56,7 +57,7 @@ class ObjectLocation:
         columns = ['objID', 'cameraData', 'pixel' ,'enuVec', 'ecefVec', 'triangulationResults',
                 'triangulationError']
         self.objectDataArray = df(columns = columns, index = 
-            np.linspace(1, ObjectLocation.maxObsPerObj, ObjectLocation.maxObsPerObj))
+            np.linspace(0, ObjectLocation.maxObsPerObj - 1, ObjectLocation.maxObsPerObj))
         
         self.objectDataArray['objID'][0] = self.objID
         self.objectDataArray['cameraData'][0] = origCameraData
@@ -64,8 +65,16 @@ class ObjectLocation:
         
     
         
-    def addNewObservation(cameraData, pixel):
+    def addNewObservation(self, cameraData: CameraData, pixel: list):
+        
+        curObs = self.objectDataArray['objID'].count() # current observation number for indexing
+        self.objectDataArray['objID'][curObs] = self.objID
+        self.objectDataArray['cameraData'][curObs] = cameraData
+        self.objectDataArray['pixel'][curObs] = pixel
+        
+    def sensor_2_ENU(LatLonEl:list, heading: float, pitch: float, pixel: list) -> Tuple[float, float, float]:
         pass
+    
     
     def ENU_2_ECEF(ENU: list, LatLonEl: list) -> list:
         pass
