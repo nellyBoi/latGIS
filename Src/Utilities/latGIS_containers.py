@@ -10,6 +10,9 @@ File: latGIS_containers.py
 The defined containers for the latGIS Python architecture.
 
 '''
+from pandas import DataFrame as df
+import numpy as np
+
 class CameraData:
     def __init__(self, LatLonEl: list, heading: float, pitch: float):
         # instance variable unique to each instance
@@ -36,17 +39,30 @@ Method:
     - triangulation
     - triangulation error
 '''
-class ObjectionLocation:
+        
+class ObjectLocation:
     
-    # incrementing object counter
-    if ('ObjID' not in locals()):
-        ObjID = 0
-    else:
-        ObjID = ObjID + 1
+    objID = 0 # object counter
+    maxObsPerObj = 10 # maximum observations for each object
+    
     
     def __init__(self, origCameraData: CameraData, origPixel: list):
+        
+        # incrementing object counter
+        ObjectLocation.objID += 1 # NOTE how the accessor is the class, not the object
+        self.objID = ObjectLocation.objID
+        
         # start Pandas.DataFrame
-        pass
+        columns = ['objID', 'cameraData', 'pixel' ,'enuVec', 'ecefVec', 'triangulationResults',
+                'triangulationError']
+        self.objectDataArray = df(columns = columns, index = 
+            np.linspace(1, ObjectLocation.maxObsPerObj, ObjectLocation.maxObsPerObj))
+        
+        self.objectDataArray['objID'][0] = self.objID
+        self.objectDataArray['cameraData'][0] = origCameraData
+        self.objectDataArray['pixel'][0] = origPixel
+        
+    
         
     def addNewObservation(cameraData, pixel):
         pass
