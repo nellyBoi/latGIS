@@ -10,9 +10,16 @@ File: latGIS_containers.py
 The defined containers for the latGIS Python architecture.
 
 '''
+import sys, os
+sys.path.append(os.path.join(os.path.realpath(__file__),'..','Triangulation'))
+
 from pandas import DataFrame as df
 import numpy as np
 from typing import Tuple
+from CONSTANTS import constants
+from triangulate import minDistPoint_3D
+from enu_to_ecef import enu2ecef
+
 
 class CameraData:
     def __init__(self, LatLonEl: list, heading: float, pitch: float):
@@ -45,9 +52,13 @@ class ObjectLocation:
     
     objID = 0 # object counter
     maxObsPerObj = 10 # maximum observations for each object
-    
+    deg2rad = np.pi/180 # degrees to radians
+    focalLength = float
     
     def __init__(self, origCameraData: CameraData, origPixel: list):
+        
+        # calculate virtual focal length
+        ObjectLocation.focalLength = ObjectLocation.calcVirtualFocalLength()
         
         # incrementing object counter
         ObjectLocation.objID += 1 # NOTE how the accessor is the class, not the object
@@ -63,6 +74,9 @@ class ObjectLocation:
         self.objectDataArray['cameraData'][0] = origCameraData
         self.objectDataArray['pixel'][0] = origPixel
         
+        # convert to ENU
+        ObjectLocation.sensor_2_ENU(self,0)
+        
     
         
     def addNewObservation(self, cameraData: CameraData, pixel: list):
@@ -72,15 +86,94 @@ class ObjectLocation:
         self.objectDataArray['cameraData'][curObs] = cameraData
         self.objectDataArray['pixel'][curObs] = pixel
         
-    def sensor_2_ENU(LatLonEl:list, heading: float, pitch: float, pixel: list) -> Tuple[float, float, float]:
-        pass
+        # convert to ENU
+        ObjectLocation.sensor_2_ENU(self,curObs)
+        
+        # get ECEF vector of object location (NOTE: Object can be anywhere on this vector)
+        ObjectLocation.ENU_2_ECEF(self, curObs)
+        
+    def sensor_2_ENU(self, curObs:int, degFlag : bool = True ):
+        
+        cameraData = self.objectDataArray['cameraData'][curObs]
+        heading = cameraData.heading
+        pitch = cameraData.pitch
+        pixel = self.objectDataArray['pixel'][curObs]
+        
+        # degrees to radians, if (degFlag == True)
+        if (degFlag == 1):    
+            heading = heading*constants.deg2rad
+            pitch = pitch*constants.deg2rad
+            
+        # calculate angle-to-target from north contributions from object pixel location
+        pitchAdjust, headingAdjust = ObjectLocation.calcAngleOffsets(pixel)
+        
+        headingForRot = heading + headingAdjust
+        pitchForRot = pitch + pitchAdjust
+        
+        # start from definition, ENU = <0, 1, 0>
+        enuDef = np.array((0, 1, 0))
+        
+        # rotate about east by the pitch
+        Rx = np.array([[1, 0, 0], 
+                       [0, np.cos(pitchForRot), -np.sin(pitchForRot)], 
+                       [0, np.sin(pitchForRot), np.cos(pitchForRot)]])
+            
+        ENU = np.matmul(Rx, enuDef)
+            
+        # rotate about north by the heading (NOTE: sign change since heading defined in CW)
+        headingForRot = -headingForRot
+        Rz = np.array([[np.cos(headingForRot), -np.sin(headingForRot), 0],
+                        [np.sin(headingForRot), np.cos(headingForRot), 0], 
+                        [0, 0, 1]])
+        
+        objENU = np.matmul(Rz, ENU) # NOTE: This should now be the object direction in ENU coords.
+        self.objectDataArray['enuVec'][curObs] = objENU
+        
+        return 
     
     
-    def ENU_2_ECEF(ENU: list, LatLonEl: list) -> list:
-        pass
+    def calcAngleOffsets(pixel: list) -> Tuple[float, float]:
+        
+        # positive col offset pairs with an INCREASE in heading-to-target
+        colPixelOffset = pixel[1] - float(constants.sensorSize[1]/2)
+        colAngle = np.arctan(np.abs(colPixelOffset/ObjectLocation.focalLength))
+        if (colPixelOffset < 0):
+            colAngle = -colAngle
+            
+        # positive row offset pairs with a DECREASE in pitch-to-target
+        rowPixelOffset = pixel[0] - float(constants.sensorSize[0]/2)
+        rowAngle = np.arctan(np.abs(rowPixelOffset/ObjectLocation.focalLength))
+        if (rowPixelOffset > 0):
+            rowAngle = -rowAngle
+            
+        return rowAngle, colAngle   
+    
+    
+    def ENU_2_ECEF(self, curObs: int) -> list:
+        
+        cameraData = self.objectDataArray['cameraData'][curObs]
+        LLE = cameraData.LatLonEl
+        
+        enuVec = self.objectDataArray['enuVec'][curObs] 
+        
+        # TODO: YOU ARE HERE :: SOMETHING WRONG HERE
+        xECEF, yECEF, zECEF = enu2ecef(enuVec[0], enuVec[1], enuVec[2], LLE[0], LLE[1], LLE[2], deg = True)
+        ECEF = np.array((xECEF, yECEF, zECEF))
+        self.objectDataArray['ecefVec'][curObs] = ECEF
+        
+        return
     
     def triagulation():
         pass
     
     def triangulationError():
         pass
+    
+    def calcVirtualFocalLength() -> float:
+        '''Pixel units'''
+        FOV = constants.FOV
+        # focal length calculation is based off 2nd sensor size value, numCols
+        numCols = constants.sensorSize[1]
+        focalLength = numCols/(2*np.arctan(constants.deg2rad*FOV/2))
+        return focalLength
+        

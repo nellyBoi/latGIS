@@ -57,22 +57,24 @@ TODO:
     be variable once this class is used for more general targets. 
 """
 import sys, os
-sys.path.append(os.path.join(sys.path[0],'..','Utilities'))
+sys.path.append(os.path.join(os.path.realpath(__file__),'..','..','Src','Triangulation'))
+
 import numpy as np
 from enu_to_ecef import enu2ecef
 from rotation import Rotate
 from coord_transfers import CoordTransfers
-from latGIS_containers import CameraData        
+from latGIS_containers import CameraData   
+from CONSTANTS import constants     
   
 class Object_Location_Model:
     
     def __init__(self, W: float):
         
         # constants
-        self.FOV = 30 # degrees
-        self.sensorSize = [1024, 1024]
-        self.rad2deg = 180/np.pi
-        self.deg2rad = np.pi/180
+        self.FOV = constants.FOV
+        self.sensorSize = constants.sensorSize
+        self.rad2deg = constants.rad2deg
+        self.deg2rad = constants.deg2rad
         
         # calculated values
         self.focalLength = self.calcVirtualFocalLength()
