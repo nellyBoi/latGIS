@@ -68,6 +68,8 @@ from CONSTANTS import constants
   
 class Object_Location_Model:
     
+    coordTransfers = CoordTransfers() 
+    
     def __init__(self, W: float):
         
         # constants
@@ -95,11 +97,10 @@ class Object_Location_Model:
             - degFlag ( degrees )
 
         '''
-        # TODO: this should be moved
-        coordTransfers = CoordTransfers() 
+        
         # transfer Latitude, Longitude to ECEF, converted to arrays
-        frame_t1_ecef = np.asarray(coordTransfers.LLE_to_ECEF(LLE = camData1.LatLonEl))
-        frame_t2_ecef = np.asarray(coordTransfers.LLE_to_ECEF(LLE = camData2.LatLonEl))
+        frame_t1_ecef = np.asarray(Object_Location_Model.coordTransfers.LLE_to_ECEF(LLE = camData1.LatLonEl))
+        frame_t2_ecef = np.asarray(Object_Location_Model.coordTransfers.LLE_to_ECEF(LLE = camData2.LatLonEl))
         
         # degrees to radians, if (degFlag == True)
         if (degFlag == 1):    

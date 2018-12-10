@@ -3,8 +3,8 @@
 import sys, os
 import pandas as pd
 
-sys.path.append(os.path.join(sys.path[0],'..','..','Src','Tracking'))
-sys.path.append(os.path.join(sys.path[0],'..','..','Src','Utilities'))
+sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Tracking'))
+sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Utilities'))
 
 
 from latGIS_containers import CameraData, ObjectLocation
@@ -13,10 +13,12 @@ camData = CameraData([0, 0, 10], 0, 0)
 
 objObj = ObjectLocation(origCameraData = camData, origPixel = [512, 512])
 
-# add a couple of objections 
-camData1 = CameraData([21, 51, 171], 0, 90)
-objObj.addNewObservation(cameraData = camData1, pixel = [712,512])
+# add a couple of objects 
+camData1 = CameraData([0, 1, 0], 350, 0)
+objObj.addNewObservation(cameraData = camData1, pixel = [512,512])
 
+camData1 = CameraData([89, 0, 0], 0, 0)
+objObj.addNewObservation(cameraData = camData1, pixel = [512,512])
 
 # print back data
 dataFrame = objObj.objectDataArray
