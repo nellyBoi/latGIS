@@ -47,6 +47,11 @@ Method:
     - ENU to ECEF
     - triangulation
     - triangulation error
+    
+TODO:
+    - change objectDataArray to __objectDataArray__ to signal privacy
+    - write a results getter
+    - adapt triangulation for all possible observation combinations
 '''
         
 class ObjectLocation:
