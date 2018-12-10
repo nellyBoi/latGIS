@@ -33,3 +33,7 @@
 
 # Spyder Project Files
 .spyproject/
+
+#API key
+Src/StreetViewAPI/AOIfunctions.py
+
