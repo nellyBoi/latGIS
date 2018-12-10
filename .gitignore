@@ -35,5 +35,5 @@
 .spyproject/
 
 #API key
-Src/StreetViewAPI/AOIfunctions.py
+Src/StreetViewAPI/ggapikeydoc.py
 
