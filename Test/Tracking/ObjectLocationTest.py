@@ -24,8 +24,12 @@ pitch0 = 0
 heading1 = 0
 pitch1 = 0
 
+heading2 = 0
+pitch2 = 0
+
 pixel0 = [512, 512]
 pixel1 = [512, 490]
+pixel2 = [512, 475]
 # ---------------------------------------------------------------------------------
 
 camData0 = CameraData(LatLonEl0, heading0, pitch0)
@@ -36,12 +40,18 @@ LatLonEl1 = CT.ECEF_to_LLE(ECEF1)
 
 objObj = ObjectLocation(origCameraData = camData0, origPixel = pixel0)
 
-# add a couple of objects 
+# add an observation
 camData1 = CameraData(LatLonEl1, heading1, pitch1)
 objObj.addNewObservation(cameraData = camData1, pixel = pixel1)
 
-# camData1 = CameraData([0, 1.2, 0], 348, 0)
-# objObj.addNewObservation(cameraData = camData1, pixel = [512,512])
+# print results
+objObj.printResults()
+
+# add another observation
+ECEF2 = [ECEF1[0] + metersTraveled[0], ECEF1[1] + metersTraveled[1], ECEF1[2] + metersTraveled[2]]
+LatLonEl2 = CT.ECEF_to_LLE(ECEF2)
+camData2 = CameraData(LatLonEl2, heading2, pitch2)
+objObj.addNewObservation(cameraData = camData2, pixel = pixel2)
 
 # print results
 objObj.printResults()
