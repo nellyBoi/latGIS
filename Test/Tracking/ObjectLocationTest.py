@@ -1,47 +1,52 @@
 # -*- coding: utf-8 -*-
 
 import sys, os
-import pandas as pd
 
 sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Tracking'))
 sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Utilities'))
 
 
 from latGIS_containers import CameraData, ObjectLocation
+from coord_transfers import CoordTransfers
+CT = CoordTransfers()
 
-camData = CameraData([0, 0, 10], 0, 0)
+# We will use the tranformations we wrote for the algorithm to make a realistic scenario
+# in which we have an appropriate lat/lon/el and heading and only 'move' along
+# some direction by a specified amount of meters
 
-objObj = ObjectLocation(origCameraData = camData, origPixel = [512, 512])
+# ---------------------- VARIABLES TO CHANGE --------------------------------------
+LatLonEl0 = [0, 0, 10]
+metersTraveled = [0, 10, 0]
+
+heading0 = 0
+pitch0 = 0
+
+heading1 = 0
+pitch1 = 0
+
+pixel0 = [512, 512]
+pixel1 = [512, 490]
+# ---------------------------------------------------------------------------------
+
+camData0 = CameraData(LatLonEl0, heading0, pitch0)
+ECEF0 = CT.LLE_to_ECEF(LatLonEl0)
+ECEF1 = [ECEF0[0] + metersTraveled[0], ECEF0[1] + metersTraveled[1], ECEF0[2] + metersTraveled[2]]
+
+LatLonEl1 = CT.ECEF_to_LLE(ECEF1)
+
+objObj = ObjectLocation(origCameraData = camData0, origPixel = pixel0)
 
 # add a couple of objects 
-camData1 = CameraData([0, 1, 0], 350, 0)
-objObj.addNewObservation(cameraData = camData1, pixel = [512,512])
+camData1 = CameraData(LatLonEl1, heading1, pitch1)
+objObj.addNewObservation(cameraData = camData1, pixel = pixel1)
 
-camData1 = CameraData([89, 0, 0], 0, 0)
-objObj.addNewObservation(cameraData = camData1, pixel = [512,512])
+# camData1 = CameraData([0, 1.2, 0], 348, 0)
+# objObj.addNewObservation(cameraData = camData1, pixel = [512,512])
 
-# print back data
-dataFrame = objObj.objectDataArray
+# print results
+objObj.printResults()
 
-with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-    print(dataFrame)
 
-camDataBack = dataFrame['cameraData'][0]
-print(('LatLonEl: ' + str(camDataBack.LatLonEl)))
-print(('heading: ' + str(camDataBack.heading)))
-print(('pitch: ' + str(camDataBack.pitch)))
 
-enuBack = dataFrame['enuVec'][0]
-print(('ENU Vector: ' + str(enuBack)))
-ecefBack = dataFrame['ecefVec'][0]
-print(('ECEF Vector: ' + str(ecefBack)))
 
-camDataBack = dataFrame['cameraData'][1]
-print(('LatLonEl: ' + str(camDataBack.LatLonEl)))
-print(('heading: ' + str(camDataBack.heading)))
-print(('pitch: ' + str(camDataBack.pitch)))
 
-enuBack = dataFrame['enuVec'][1]
-print(('ENU Vector: ' + str(enuBack)))
-ecefBack = dataFrame['ecefVec'][1]
-print(('ECEF Vector: ' + str(ecefBack)))

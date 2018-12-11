@@ -49,7 +49,6 @@ Method:
     - triangulation error
     
 TODO:
-    - change objectDataArray to __objectDataArray__ to signal privacy
     - write a results getter
     - adapt triangulation for all possible observation combinations
 '''
@@ -76,12 +75,12 @@ class ObjectLocation:
         # start Pandas.DataFrame
         columns = ['objID', 'cameraData', 'pixel', 'ecefPt','enuVec', 'ecefVec', 'objectLocationECEF',
                 'objectLocationLLE', 'triangulationError']
-        self.objectDataArray = df(columns = columns, index = 
+        self.__objectDataArray = df(columns = columns, index = 
             np.linspace(0, ObjectLocation.maxObsPerObj - 1, ObjectLocation.maxObsPerObj))
         
-        self.objectDataArray['objID'][0] = self.objID
-        self.objectDataArray['cameraData'][0] = origCameraData
-        self.objectDataArray['pixel'][0] = origPixel
+        self.__objectDataArray['objID'][0] = self.objID
+        self.__objectDataArray['cameraData'][0] = origCameraData
+        self.__objectDataArray['pixel'][0] = origPixel
         
         # convert to ENU
         ObjectLocation.sensor_2_ENU(self, 0)
@@ -92,15 +91,15 @@ class ObjectLocation:
     
     def addNewObservation(self, cameraData: CameraData, pixel: list):
         
-        curObs = self.objectDataArray['objID'].count() # current observation number for indexing
+        curObs = self.__objectDataArray['objID'].count() # current observation number for indexing
         
         if (curObs == ObjectLocation.maxObsPerObj):
             print('WARNING: Object list full, increase maximum observations')
             return
         
-        self.objectDataArray['objID'][curObs] = self.objID
-        self.objectDataArray['cameraData'][curObs] = cameraData
-        self.objectDataArray['pixel'][curObs] = pixel
+        self.__objectDataArray['objID'][curObs] = self.objID
+        self.__objectDataArray['cameraData'][curObs] = cameraData
+        self.__objectDataArray['pixel'][curObs] = pixel
         
         # convert to ENU
         ObjectLocation.sensor_2_ENU(self,curObs)
@@ -117,12 +116,79 @@ class ObjectLocation:
         return
     
     
+    def printResults(self):
+        
+        # compute results
+        location, totalError, numLocations = ObjectLocation.computeResults(self)
+        print('Object ID: ' + str(self.objID))
+        print('Lat, Lon, Elev: ' + str(location))
+        print('Computed Error: ' + str(totalError))
+        print('Number or triangulations: ' + str(numLocations))
+        
+        return
+    
+    
+    # TODO: print DataFrame information
+    def printFullResults(self):
+        pass
+    
+    
+    # TODO: Write Results to file.
+    def writeResultsToFile(self, filePath):
+        pass
+    
+    
+    def computeResults(self) -> Tuple[float, float, float]:
+        
+        # TODO: adapt this when triangulation computes on possible each obs. conbination.
+        # For now, the results will be:
+        #   -> Location: mean of all computed location
+        #   -> Error: mean(errors)/sqrt(number of errors)
+        # NOTE: Will also output number of computed locations for printing purposes 
+        
+        # NOTE: the avg. location is found in ECEF and then converted to LLE
+        nonNullObsVals = self.__objectDataArray['objectLocationECEF'][self.__objectDataArray['objectLocationECEF'].notnull().values]
+        
+        nonNullObsVals = nonNullObsVals.values
+        numLocations = len(nonNullObsVals)
+        
+        if (numLocations > 0):
+            # calculate X, Y and Z
+            x = float(0)
+            y = float(0)
+            z = float(0)
+            for idx in np.arange(numLocations):
+                x = x + nonNullObsVals[idx][0]
+                y = y + nonNullObsVals[idx][1]
+                z = z + nonNullObsVals[idx][2]
+                
+            x = x/numLocations
+            y = y/numLocations
+            z = z/numLocations
+                
+            location = ObjectLocation.coordTransfers.ECEF_to_LLE([x, y, z])
+        
+        else:
+            location = np.nan
+        
+        # TODO: Error computes must be recalculated
+        nonNullErrVals = self.__objectDataArray['triangulationError'][self.__objectDataArray['triangulationError'].notnull().values]
+        numErrors = len(nonNullErrVals.values)
+        
+        if (numErrors > 0):
+            totalError = np.mean(nonNullErrVals)/np.sqrt(numErrors)
+        else:
+            totalError = np.nan
+            
+        return location, totalError, numLocations
+        
+    
     def sensor_2_ENU(self, curObs:int, degFlag : bool = True ):
         
-        cameraData = self.objectDataArray['cameraData'][curObs]
+        cameraData = self.__objectDataArray['cameraData'][curObs]
         heading = cameraData.heading
         pitch = cameraData.pitch
-        pixel = self.objectDataArray['pixel'][curObs]
+        pixel = self.__objectDataArray['pixel'][curObs]
         
         # degrees to radians, if (degFlag == True)
         if (degFlag == 1):    
@@ -152,7 +218,7 @@ class ObjectLocation:
                         [0, 0, 1]])
         
         objENU = np.matmul(Rz, ENU) # NOTE: This should now be the object direction in ENU coords.
-        self.objectDataArray['enuVec'][curObs] = objENU
+        self.__objectDataArray['enuVec'][curObs] = objENU
         
         return 
     
@@ -177,10 +243,10 @@ class ObjectLocation:
     # This function will compute the ecef capture point and the ecef direction vector.
     def ENU_2_ECEF(self, curObs: int):
         
-        cameraData = self.objectDataArray['cameraData'][curObs]
+        cameraData = self.__objectDataArray['cameraData'][curObs]
         LLE = cameraData.LatLonEl
         
-        enuVec = self.objectDataArray['enuVec'][curObs] 
+        enuVec = self.__objectDataArray['enuVec'][curObs] 
         
         # To create the ECEF vector there has to be two points in ECEF. The first one will
         # be at the ENU origin, the second one will be on the ENU vector. 
@@ -198,8 +264,8 @@ class ObjectLocation:
         vecEcef = np.array((xECEF, yECEF, zECEF))
         vecEcef = vecEcef/np.linalg.norm(vecEcef)
         
-        self.objectDataArray['ecefPt'][curObs] = ptEcef
-        self.objectDataArray['ecefVec'][curObs] = vecEcef
+        self.__objectDataArray['ecefPt'][curObs] = ptEcef
+        self.__objectDataArray['ecefVec'][curObs] = vecEcef
         
         return
     
@@ -210,13 +276,19 @@ class ObjectLocation:
         # current observation and the previous observation. Adapt this to do triangulation
         # on all possible combinations in the list of observations and use the results 
         # of all of them to compute one final result.
-        ecefPt1 = self.objectDataArray['ecefPt'][curObs-1]
-        ecefVec1 = self.objectDataArray['ecefVec'][curObs-1]
-        ecefPt2 = self.objectDataArray['ecefPt'][curObs]
-        ecefVec2 = self.objectDataArray['ecefVec'][curObs]
+        ecefPt1 = self.__objectDataArray['ecefPt'][curObs-1]
+        ecefVec1 = self.__objectDataArray['ecefVec'][curObs-1]
+        ecefPt2 = self.__objectDataArray['ecefPt'][curObs]
+        ecefVec2 = self.__objectDataArray['ecefVec'][curObs]
         [objectLocationECEF, minDist] = minDistPoint_3D(ecefVec1, ecefPt1, ecefVec2, ecefPt2)
         
-        self.objectDataArray['objectLocationECEF'][curObs] = objectLocationECEF
+        if (objectLocationECEF == []):
+            objectLocationECEF = np.NaN
+        
+        if (minDist == []):
+            minDist = np.NaN
+            
+        self.__objectDataArray['objectLocationECEF'][curObs] = objectLocationECEF
         
         # computing triangulation error
         ObjectLocation.triangulationError(self, curObs, ecefVec1, ecefVec2, minDist)
@@ -239,21 +311,21 @@ class ObjectLocation:
         else:
             calcError = (1.0/2.0)*distance/np.sin(angle)
         
-        self.objectDataArray['triangulationError'][curObs] = calcError
+        self.__objectDataArray['triangulationError'][curObs] = calcError
         
         return
     
     
     def getObjectLLE(self, curObs):
         
-        objectLocationECEF = self.objectDataArray['objectLocationECEF'][curObs]
+        objectLocationECEF = self.__objectDataArray['objectLocationECEF'][curObs]
         
-        if(objectLocationECEF != []):
+        if(not np.isnan(objectLocationECEF).any()):
             LLE = ObjectLocation.coordTransfers.ECEF_to_LLE([objectLocationECEF[0], objectLocationECEF[1], objectLocationECEF[2]])
         else:
-            LLE = []
+            LLE = np.NaN
             
-        self.objectDataArray['objectLocationLLE'][curObs] = LLE
+        self.__objectDataArray['objectLocationLLE'][curObs] = LLE
         
         
     def calcVirtualFocalLength() -> float:
