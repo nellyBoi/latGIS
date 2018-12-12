@@ -85,7 +85,7 @@ class Object_Location_Model:
         self.W_est = W # (m) : estimated closest dist. to obj. from D vector.
         
     
-    def objectLocationPredictor(self, objRowCol: list, camData1: CameraData, camData2: CameraData, degFlag : bool = False )-> list:
+    def objectLocationPredictor(self, objRowCol: list, camData1: CameraData, camData2: CameraData, degFlag : bool = True )-> list:
         
         '''This function will be used to predict the objects location in frame t+1 
         from from knowledge of frame t, various camera parameters and the necessary

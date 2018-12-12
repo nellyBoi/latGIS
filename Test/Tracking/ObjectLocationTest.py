@@ -56,6 +56,14 @@ objObj.addNewObservation(cameraData = camData2, pixel = pixel2)
 # print results
 objObj.printResults()
 
+# testing getter functions
+print("Camera Data: ")
+cam = objObj.getRecentCameraData()
+print(str(cam.LatLonEl) + str(cam.heading) + str(cam.pitch))
+print("Pixel: ")
+print(objObj.getRecentPixel())
+
+
 
 
 

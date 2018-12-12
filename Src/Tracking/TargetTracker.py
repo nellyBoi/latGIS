@@ -1,33 +1,78 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from munkres import Munkres
+from munkres import Munkres, DISALLOWED_OBJ
+from latGIS_containers import ObjectLocation, CameraData
+from pandas import DataFrame as df
+from Object_Location_Model import Object_Location_Model
 
+# Do we need this or does the other file pull it in?
+DISALLOWED = DISALLOWED_OBJ()
+DISALLOWED_PRINTVAL = "D"
 
 class TargetTracker:
     
     # static variables
     maxObservations = 25
+    maxTracks = 50
     LARGE_VAL = 10000000
+    SMALL_VAL = 1/1000000
+    
+    # instantiate the assignment algorithm
+    assignmentAlgorithm = Munkres()
+    
+    # instantiate the object motion model
+    objectMotion = Object_Location_Model()
     
     def __init__(self, gateSize: int):
         
         self.gateSize = gateSize # size of gate in pixels
         self.assignmentAlgorithm = Munkres()
-        # TODO deal with track ID's, data storage, and do we do triangulation 
-        # here or do we save that for somewhere else?
         
-    def generateTracks(self, observations: list, currentTracks: list) -> list:
-        # this function ingests a list of observations in pixel (row, col) 
-        # coordinates and a list of current track predictions in (row, col) 
-        # coordinates and using a list of TODO, answer this.
-        costMatrix = self.buildCostMatrix(observations, currentTracks)
-        indexes = self.assignmentAlgorithm.compute(costMatrix) 
+        # start Pandas.DataFrame
+        columns = ['trackID', 'ObjectLocation_instance']
+        self.__trackDataArray = df(columns = columns, index = 
+            np.linspace(0, TargetTracker.maxTracks - 1, TargetTracker.maxTracks))
         
+        # This function passes in a list of 'observations' as pixels [row, col]
+        # and a current CameraData instance associated with them. It attempts to associate
+        # the new observations with tracks. For those observations that an association is
+        # not made, new object instances will begin.
+    def generateTracks(self, observations: list, curCameraData: CameraData) -> list:
         
-    def buildCostMatrix(self, observations: list, currentTracks: list) -> np.array:
+        # grab size of current __trackDataArray
+        curTrks = self.__trackDataArray['trackID'].count()
+        
+        # TODO:: Get all track ID's here
+        
+        # make a prediction for each current track, NOTE: the loop doesn't execute if curTrks = 0
+        predictions = []
+        for idx in np.arange(curTrks):
+            
+            trkObject = self.__trackDataArray['ObjectLocation_instance'][idx]
+            trkCameraData = trkObject.getRecentCameraData()
+            trkPixel = trkObject.getRecentPixel()
+            
+            predictedPixel = TargetTracker.objectMotion.objectLocationPredictor(objRowCol = trkPixel,
+                camData1 = trkCameraData, camData2 = curCameraData)
+            
+            predictions.append(predictedPixel)
+            
+        # build cost matrix with observations and predictions
+        costMatrix = TargetTracker.buildCostMatrix(self, observations, predictions)
+        
+        # run the association algorithm on the cost matrix
+        indices = TargetTracker.assignmentAlgorithm.compute(costMatrix)
+        
+        # loop over indexes, if an index matches a track than add to that tracks ObjectLocation instance,
+        # if an index is out of the track columns of the cost matrix than instantiate a new track and a 
+        # new object. Finally, eliminate old tracks and add their ObjectLocation instances
+        # to the list for output. ALSO can output result from each track as it is updated, output all tracks here!!
+        # YOU ARE HERE
+        
+    def buildCostMatrix(self, observations: list, predictions: list) -> np.array:
         
         numObservations = len(observations)
-        numTracks = len(currentTracks)
+        numTracks = len(predictions)
         
         # value of perfect overlap, zero distance between obs and track
         bestMatch = np.pi*self.gateSize**2
@@ -41,7 +86,7 @@ class TargetTracker:
         for obsIdx in np.arange(numObservations):
             for trkIdx in np.arange( numTracks):
                 curObs = observations[obsIdx] # should be a len 2 list here
-                curTrk = currentTracks[trkIdx] # should be a len 2 list here
+                curTrk = predictions[trkIdx] # should be a len 2 list here
                 
                 # value of overlapping gates
                 matchVal = self.gate(prediction = curTrk, observation = curObs)
