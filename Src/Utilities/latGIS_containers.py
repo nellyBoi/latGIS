@@ -120,6 +120,14 @@ class ObjectLocation:
         return
     
     
+    def getResults(self) -> list:
+        
+        # compute results
+        location, totalError, numLocations = ObjectLocation.computeResults(self)
+        
+        return ['ID: ' + str(self.objID), 'Loc: ' + str(location), 'Error: ' + str(totalError), 'Triangulations: ' + str(numLocations)]
+    
+    
     def printResults(self):
         
         # compute results

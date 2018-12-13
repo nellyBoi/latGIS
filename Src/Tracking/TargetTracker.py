@@ -39,10 +39,18 @@ class TargetTracker:
         # not made, new object instances will begin.
     def generateTracks(self, observations: list, curCameraData: CameraData) -> list:
         
+        # for output
+        results = []
+        
         # grab size of current __trackDataArray
         curTrks = self.__trackDataArray['trackID'].count()
         
-        # TODO:: Get all track ID's here
+        # Get track ID's. NOTE: This is a list. trackIDs
+        trackIDs = np.array(self.__trackDataArray[self.__trackDataArray['trackID'].notnull()]['trackID']).tolist()
+        
+        # NOTE: This will be used to remove unused tracks at the end. As tracks are used they will be
+        # removed from this list, and the remaining list will be removed from self.__trackDataArray
+        trackIDsUnused = trackIDs.copy()
         
         # make a prediction for each current track, NOTE: the loop doesn't execute if curTrks = 0
         predictions = []
@@ -68,7 +76,41 @@ class TargetTracker:
         # new object. Finally, eliminate old tracks and add their ObjectLocation instances
         # to the list for output. ALSO can output result from each track as it is updated, output all tracks here!!
         # YOU ARE HERE
-        
+        for idx in indices:
+            
+            obsIdx = idx[0]
+            predIdx = idx[1]
+            
+            if (predIdx) < len(trackIDs):
+                # match trackID to observation, update ObjectLocation object with camera data and pixel
+                trackID = self.__trackDataArray['trackID'][predIdx]
+                trackIDidx = int(np.where(self.__trackDataArray['trackID'] == trackID)[0])
+                
+                self.__trackDataArray['ObjectLocation_instance'][trackIDidx].addNewObservation(
+                        cameraData = curCameraData, pixel = observations[obsIdx])
+                
+                # remove used track from unused list
+                trackIDsUnused.remove(trackID)
+                
+                # add object ID and location and error updates to the list of results for end of generateTracks call
+                curResults = self.__trackDataArray['ObjectLocation_instance'][trackIDidx].getResults()
+                results.append(curResults)
+                
+            else:
+                # instantiate new Object, let object create track ID, once it instantiates a new ObjectLocation object
+                newObj = ObjectLocation(origCameraData = curCameraData, origPixel = observations[obsIdx])
+                newID = newObj.objID
+                self.__trackDataArray['trackID'] = newID
+                self.__trackDataArray['ObjectLocation_instance'][curTrks  + idx] = newObj
+                
+        # remove tracks that were NOT updated from the track list
+        for dropID in trackIDsUnused:
+            dropIDidx = int(np.where(self.__trackDataArray['trackID'] == dropID)[0])
+            self.__trackDataArray = self.__trackDataArray.drop(dropIDidx)
+            
+        return results
+
+                
     def buildCostMatrix(self, observations: list, predictions: list) -> np.array:
         
         numObservations = len(observations)

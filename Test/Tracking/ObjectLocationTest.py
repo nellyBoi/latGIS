@@ -55,6 +55,7 @@ objObj.addNewObservation(cameraData = camData2, pixel = pixel2)
 
 # print results
 objObj.printResults()
+print(objObj.getResults())
 
 # testing getter functions
 print("Camera Data: ")
