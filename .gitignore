@@ -37,3 +37,6 @@
 #API key
 Src/StreetViewAPI/ggapikeydoc.py
 
+# All csv items
+*.csv
+
