@@ -12,9 +12,11 @@ import os
 class gsvobject:
     def __init__(self):
         self.meta_url = 'https://maps.googleapis.com/maps/api/streetview/metadata'
-        self.api_url = 'https://maps.googleapis.com/maps/api/streetview'
+        self.api_url = 'https://maps.googleapis.com/maps/api/streetview?'
         self.api_key = GoogleAPIKey
         self.search_coords = {}
+        self.params = {}
+        self.metadata = {}
     def getpanoid(self, search_lat, search_lon):
         self.search_coords['slat'] = search_lat
         self.search_coords['slon'] = search_lon
@@ -23,16 +25,27 @@ class gsvobject:
                                             str(search_lon),
                                             GoogleAPIKey)
         self.metadata = requests.get(metadata_query, stream=True).json()
-#    def getimage(self,
-#                 panoid=self.metadata['pano_id'],
-#                 heading:int,
-#                 pitch:float,
-#                 fov = 180,
-#                 size = list,
-#                 source = 'outdoor'):
-#        params = [s]
-#        pass
-        
+    def getimage(self,
+                 heading:int,
+                 pitch:float,
+                 panoid=str,
+                 fov = 180,
+                 size = '640x640',
+                 source = 'outdoor'):
+        self.params['pano'] = self.metadata['pano_id']
+        self.params['size'] = size
+        self.params['heading'] = heading
+        self.params['pitch'] = pitch
+        self.params['fov'] = fov
+        self.params['source'] = source
+        self.params['key'] = GoogleAPIKey
+        params_text = '&'.join(['%s=%s' % (key, value) for (key, value) in self.params.items()])
+        rurl = self.api_url+params_text
+        return requests.get(rurl)
+
+g = gsvobject()
+g.getpanoid(xx,yy)
+a = g.getimage(heading=0, pitch=0)
 
 
 uu = 'https://maps.googleapis.com/maps/api/streetview?size=600x300&location=46.414382,10.013988&heading=151.78&pitch=-0.76&key={}'.format(GoogleAPIKey)
