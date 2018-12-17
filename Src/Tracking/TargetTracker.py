@@ -86,6 +86,7 @@ class TargetTracker:
                 trackID = self.__trackDataArray['trackID'][predIdx]
                 trackIDidx = int(np.where(self.__trackDataArray['trackID'] == trackID)[0])
                 
+                # TODO: PASS BY REFERENCE
                 self.__trackDataArray['ObjectLocation_instance'][trackIDidx].addNewObservation(
                         cameraData = curCameraData, pixel = observations[obsIdx])
                 
@@ -100,6 +101,8 @@ class TargetTracker:
                 # instantiate new Object, let object create track ID, once it instantiates a new ObjectLocation object
                 newObj = ObjectLocation(origCameraData = curCameraData, origPixel = observations[obsIdx])
                 newID = newObj.objID
+                
+                # TODO: PASS BY REFERENCE
                 self.__trackDataArray['trackID'] = newID
                 self.__trackDataArray['ObjectLocation_instance'][curTrks  + idx] = newObj
                 
