@@ -43,10 +43,14 @@ class gsvobject:
         rurl = self.api_url+params_text
         return requests.get(rurl)
 
+xx = 41.341536
+yy = -106.305714
 g = gsvobject()
 g.getpanoid(xx,yy)
 a = g.getimage(heading=0, pitch=0)
 
+ii = np.frombuffer(a.content, dtype = 'int32')
+https://markhneedham.com/blog/2018/04/07/python-serialize-deserialize-numpy-2d-arrays/
 
 uu = 'https://maps.googleapis.com/maps/api/streetview?size=600x300&location=46.414382,10.013988&heading=151.78&pitch=-0.76&key={}'.format(GoogleAPIKey)
 
