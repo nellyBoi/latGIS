@@ -49,17 +49,18 @@ g = gsvobject()
 g.getpanoid(xx,yy)
 a = g.getimage(heading=0, pitch=0)
 
-ii = np.frombuffer(a.content, dtype = 'int32')
-https://markhneedham.com/blog/2018/04/07/python-serialize-deserialize-numpy-2d-arrays/
+ii = np.frombuffer(a.content, dtype = 'uint8')
+
+#https://markhneedham.com/blog/2018/04/07/python-serialize-deserialize-numpy-2d-arrays/
 
 uu = 'https://maps.googleapis.com/maps/api/streetview?size=600x300&location=46.414382,10.013988&heading=151.78&pitch=-0.76&key={}'.format(GoogleAPIKey)
 
 import requests
-r = requests.get(uu)
+r = requests.get(a.url, stream=True)
 type(r.content)
 
 def download(url, out_dir, filename):
-    if not path.isdir(out_dir):
+    if not os.path.isdir(out_dir):
         makedirs(out_dir)
     file_path = os.path.join(out_dir, filename)
     r = requests.get(url, stream=True)
