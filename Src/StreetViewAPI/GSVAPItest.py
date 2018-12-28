@@ -2,7 +2,9 @@
 """
 Created on Wed Jun 20 17:04:20 2018
 
-@author: Max
+@author: Max Marno
+
+
 """
 import pandas as pd
 import os

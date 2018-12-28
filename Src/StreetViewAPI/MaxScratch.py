@@ -91,3 +91,37 @@ mgrid['xxyy'] = mgrid.apply(lambda x: projcoords(4087, 4326, [x.XX, x.YY]), axis
 mgrid[['xlon', 'ylat']] = mgrid['xxyy'].apply(pd.Series)
 
 mgrid.to_csv('mgridtest10.csv')
+
+
+
+
+
+xx = 41.341536
+yy = -106.305714
+g = gsvobject()
+g.getpanoid(xx,yy)
+g.getimage(heading=100, pitch=0)
+
+ii = np.frombuffer(a.content, dtype = 'uint8')
+
+from PIL import Image
+from io import BytesIO
+img = Image.open(BytesIO(ii))
+
+#https://markhneedham.com/blog/2018/04/07/python-serialize-deserialize-numpy-2d-arrays/
+
+uu = 'https://maps.googleapis.com/maps/api/streetview?size=600x300&location=46.414382,10.013988&heading=151.78&pitch=-0.76&key={}'.format(GoogleAPIKey)
+
+import requests
+r = requests.get(uu, stream=True)
+type(r.content)
+
+def download(url, out_dir, filename):
+    if not os.path.isdir(out_dir):
+        makedirs(out_dir)
+    file_path = os.path.join(out_dir, filename)
+    r = requests.get(url, stream=True)
+    if r.status_code == 200: # if request is successful
+        with open(file_path, 'wb') as f:
+            r.raw.decode_content = True
+            shutil.copyfileobj(r.raw, f)

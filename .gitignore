@@ -40,3 +40,8 @@ Src/StreetViewAPI/ggapikeydoc.py
 # All csv items
 *.csv
 
+#Images
+*.png
+*.jpg
+*.jpeg
+

@@ -3,13 +3,26 @@
 Created on Sun Dec  9 18:37:43 2018
 
 @author: Max Marno
+
+Interface to Google Streetview API
+
+Note: some methods are predicated on results from other methods, ie
+'getimage' cannot be run until the panoid has been fetched, and 'showimage'
+cannot be run until the image has been fetched
 """
 
 from ggapikeydoc import GoogleAPIKey
 from pandas import DataFrame
 import requests
 import os
+import numpy as np
+from PIL import Image
+from io import BytesIO
+
 class gsvobject:
+    '''
+    Instantiates an object to hold Google Streetview data
+    '''
     def __init__(self):
         self.meta_url = 'https://maps.googleapis.com/maps/api/streetview/metadata'
         self.api_url = 'https://maps.googleapis.com/maps/api/streetview?'
@@ -20,7 +33,7 @@ class gsvobject:
     def getpanoid(self, search_lat, search_lon):
         self.search_coords['slat'] = search_lat
         self.search_coords['slon'] = search_lon
-        # Define parameters for street view api
+        # Concatenate parameters for street view api
         metadata_query = self.meta_url+'?location={},{}&key={}'.format(str(search_lat),
                                             str(search_lon),
                                             GoogleAPIKey)
@@ -32,39 +45,44 @@ class gsvobject:
                  fov = 180,
                  size = '640x640',
                  source = 'outdoor'):
-        self.params['pano'] = self.metadata['pano_id']
-        self.params['size'] = size
-        self.params['heading'] = heading
-        self.params['pitch'] = pitch
-        self.params['fov'] = fov
-        self.params['source'] = source
-        self.params['key'] = GoogleAPIKey
-        params_text = '&'.join(['%s=%s' % (key, value) for (key, value) in self.params.items()])
-        rurl = self.api_url+params_text
-        return requests.get(rurl)
-
-xx = 41.341536
-yy = -106.305714
-g = gsvobject()
-g.getpanoid(xx,yy)
-a = g.getimage(heading=0, pitch=0)
-
-ii = np.frombuffer(a.content, dtype = 'uint8')
-
-#https://markhneedham.com/blog/2018/04/07/python-serialize-deserialize-numpy-2d-arrays/
-
-uu = 'https://maps.googleapis.com/maps/api/streetview?size=600x300&location=46.414382,10.013988&heading=151.78&pitch=-0.76&key={}'.format(GoogleAPIKey)
-
-import requests
-r = requests.get(a.url, stream=True)
-type(r.content)
-
-def download(url, out_dir, filename):
-    if not os.path.isdir(out_dir):
-        makedirs(out_dir)
-    file_path = os.path.join(out_dir, filename)
-    r = requests.get(url, stream=True)
-    if r.status_code == 200: # if request is successful
-        with open(file_path, 'wb') as f:
-            r.raw.decode_content = True
-            shutil.copyfileobj(r.raw, f)
+        try:
+            self.params['pano'] = self.metadata['pano_id']
+            self.params['size'] = size
+            self.params['heading'] = heading
+            self.params['pitch'] = pitch
+            self.params['fov'] = fov
+            self.params['source'] = source
+            self.params['key'] = GoogleAPIKey
+            params_text = '&'.join(['%s=%s' % (key, value) for (key, value) in self.params.items()])
+            rurl = self.api_url+params_text
+            self.rresponse = requests.get(rurl)
+            if self.rresponse.status_code == 200:
+                self.image_array = np.array(Image.open(BytesIO(self.rresponse.content)))
+        except AttributeError:
+            print('Run "getpanoid" first')
+            
+    def showimage(self):
+        '''
+        Show image in default image viewer
+        '''
+        
+        try:
+            img = Image.fromarray(self.image_array, 'RGB')
+            img.show()
+        except AttributeError:
+            print('Image Array does not exist! - Run "getimage" first.')
+    
+    
+    def saveimage(self, outpath, filename, imgformat='png'):
+        '''
+        Save image to specified path
+        '''
+        
+        try:
+            img = Image.fromarray(self.image_array, 'RGB')
+            fullpath = os.path.join(outpath, filename+'.'+imgformat)
+            print(fullpath)
+            img.save(fullpath)
+        except AttributeError:
+            print('Could not save image')
+            
