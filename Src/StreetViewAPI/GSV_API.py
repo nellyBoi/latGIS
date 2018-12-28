@@ -41,7 +41,6 @@ class gsvobject:
     def getimage(self,
                  heading:int,
                  pitch:float,
-                 panoid=str,
                  fov = 180,
                  size = '640x640',
                  source = 'outdoor'):
