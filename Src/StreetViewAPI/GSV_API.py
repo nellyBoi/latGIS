@@ -19,6 +19,16 @@ import numpy as np
 from PIL import Image
 from io import BytesIO
 
+
+def searchpanoid(inlat, inlon, *kwargs):
+    meta_url = 'https://maps.googleapis.com/maps/api/streetview/metadata'
+    metadata_query = meta_url+'?location={},{}&key={}'.format(str(inlat),
+                                            str(inlon),
+                                            GoogleAPIKey)
+    sresults = requests.get(metadata_query, stream=True).json()
+    return sresults
+    
+
 # Import from latGIS_containers, but for now easier to reference here
 class CameraData:
     def __init__(self, LatLonEl: list, heading: float, pitch: float):
