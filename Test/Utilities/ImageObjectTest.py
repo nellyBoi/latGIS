@@ -9,6 +9,7 @@ from GSV_API import gsvobject
 from image_object import image_obj
 from image_object import CameraData
 import numpy as np
+#from latGIS_containers import CameraData
 
 g = gsvobject()
 g.getpanoid(39.513231, -106.052872)
@@ -31,9 +32,15 @@ from AOIfunctions import gridgen
 xy1 = [-105.260432, 40.040073]
 xy2 = [-105.253751, 40.036415]
 
-mgrid= gridgen(xy1, xy2, stepsize=25)
+mgrid= gridgen(xy1, xy2, stepsize=100)
 
-img_metadata = []
+gg = gsvobject()
+
+[gg.getpanoid([[row['YY'], row['XX']]]) for ii, row in mgrid.iterrows()]
+
+imgobjs = [gsvobject().getpanoid(row['YY'], row['XX']) for ii, row in mgrid.iterrows()]
+
+img_data = []
 img_panos = []
 for ii, row in mgrid.iterrows():
     g = gsvobject()
@@ -42,21 +49,19 @@ for ii, row in mgrid.iterrows():
         if g.metadata['pano_id'] not in img_panos:
             img_panos.append(g.metadata['pano_id'])
             g.getimage(heading = 0, pitch = 0)
-            img_metadata.append(g)
+            img_data.append(g)
             
-imgswdata = [i.getimage(heading=0, pitch=0) for i in img_metadata]
-    
 
-    
-
-
-    
-
-import pickle
-with open('dataset1.pkl', 'wb') as f:
-    pickle.dump(img_metadata, f)
-    
-pids = [x.metadata['pano_id'] for x in imgs]
+#    
+#
+#
+#    
+#
+#import pickle
+#with open('dataset1.pkl', 'wb') as f:
+#    pickle.dump(img_metadata, f)
+#    
+#pids = [x.metadata['pano_id'] for x in imgs]
 
 
     

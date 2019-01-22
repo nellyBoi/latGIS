@@ -7,6 +7,8 @@ Created on Sun Dec 15 19:07:22 2018
 """
 from pandas import DataFrame
 import numpy as np
+from PIL import Image
+from io import BytesIO
 
 # Import from latGIS_containers, but for now easier to reference here
 class CameraData:
@@ -43,6 +45,14 @@ class image_obj:
                 newfeature['datasource'] = kwargs['date']
             self.features = self.features.append(newfeature, ignore_index=True, sort=False)
             return
+    def showimage(self, imageindex):
+        
+        try:
+            image_array = self.features[imageindex]
+            img = Image.fromarray(image_array, 'RGB')
+            img.show()
+        except AttributeError:
+            print('Image Array does not exist')
 
             
             

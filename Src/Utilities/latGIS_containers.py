@@ -60,7 +60,7 @@ class ObjectLocation:
     deg2rad = np.pi/180 # degrees to radians
     focalLength = float
     
-    coordTransfers = CoordTransfers() 
+    coordTransfers = CoordTransfers()
     
     
     def __init__(self, origCameraData: CameraData, origPixel: list):

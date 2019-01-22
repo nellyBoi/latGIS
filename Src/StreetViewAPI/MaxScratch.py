@@ -4,9 +4,9 @@ Created on Sun Nov 25 16:25:29 2018
 
 @author: Max Marno
 """
-import sys
-
-sys.path.append(r'C:\Users\Max Marno\Documents\Projects\latGIS\Src\StreetViewAPI')
+#import sys
+#
+#sys.path.append(r'C:\Users\Max Marno\Documents\Projects\latGIS\Src\StreetViewAPI')
 
 from ggapikeydoc import GoogleAPIKey
 from gsvapifuns import getpanoid

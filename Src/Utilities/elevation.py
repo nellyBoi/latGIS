@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import sys, os
 sys.path.append(os.path.join(sys.path[0],'..','..','Src','StreetViewAPI'))
 from ggapikeydoc import GoogleAPIKey
 def get_elevation(Lat, Lon):

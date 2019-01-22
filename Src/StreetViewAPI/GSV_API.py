@@ -10,7 +10,10 @@ Note: some methods are predicated on results from other methods, ie
 'getimage' cannot be run until the panoid has been fetched, and 'showimage'
 cannot be run until the image has been fetched
 """
+import sys, os
+sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Utilities'))
 
+from elevation import get_elevation
 from ggapikeydoc import GoogleAPIKey
 from pandas import DataFrame
 import requests
@@ -41,23 +44,42 @@ class gsvobject:
     '''
     Instantiates an object to hold Google Streetview data
     '''
+    oid=0
+    __imagecols = ['oid', 'panoid', 'metadata', 'cameradata', 'imagearray', 'searchcoords']
+    __searchcols = ['oid', 'panoid', 'metadata', 'searchcoords']
     def __init__(self):
-        # Remove this below
-       # self.CameraData = CameraData()
+
         self.meta_url = 'https://maps.googleapis.com/maps/api/streetview/metadata'
         self.api_url = 'https://maps.googleapis.com/maps/api/streetview?'
         self.api_key = GoogleAPIKey
-        self.search_coords = {}
-        self.params = {}
-        self.metadata = {}
-    def getpanoid(self, search_lat, search_lon):
-        self.search_coords['slat'] = search_lat
-        self.search_coords['slon'] = search_lon
-        # Concatenate parameters for street view api
-        metadata_query = self.meta_url+'?location={},{}&key={}'.format(str(search_lat),
-                                            str(search_lon),
-                                            GoogleAPIKey)
-        self.metadata = requests.get(metadata_query, stream=True).json()
+        self.search_results= DataFrame(columns=gsvobject.__searchcols)
+        self.image_data = DataFrame(columns = gsvobject.__imagecols)
+        
+    def getpanoid(self, search_latlon:list):
+        # returns the nearest panoid given a lat and lon within a 50 meter radius
+        for coordpair in search_latlon:
+            slat = coordpair[0]
+            slon = coordpair[1]
+            # Concatenate parameters for street view api
+            metadata_query = self.meta_url+'?location={},{}&key={}'.format(str(slat),
+                                                str(slon),
+                                                GoogleAPIKey)
+            # json results as dict
+            results = requests.get(metadata_query, stream=True).json()
+            # append if unique
+            if 'pano_id' in results:
+                if results['pano_id'] not in self.search_results['panoid']:
+                    gsvobject.oid += 1
+                    self.oid = gsvobject.oid
+                    newfeature = dict.fromkeys(gsvobject.__searchcols, 0)
+                    newfeature['oid'] = gsvobject.oid
+                    newfeature['panoid'] = results['pano_id']
+                    newfeature['metadata'] = results
+                    newfeature['searchcoords'] = [slat,slon]
+                    # Append to features dataframe
+                    self.search_results = self.search_results.append(newfeature, ignore_index=True, sort=False)
+                # Need to add else to account for cases where search is False
+    
     def getimage(self,
                  heading:int,
                  pitch:float,
@@ -81,14 +103,15 @@ class gsvobject:
                 self.CameraData = CameraData([self.metadata['location']['lat'],
                                               self.metadata['location']['lng'],
                                               elev], heading, pitch)
+                return [self.CameraData, self.metadata['pano_id'], self.image_array]
+    
         except AttributeError:
-            print('Run "getpanoid" first')
+            print('No pano id ')
             
     def showimage(self):
         '''
         Show image in default image viewer
         '''
-        
         try:
             img = Image.fromarray(self.image_array, 'RGB')
             img.show()
@@ -108,18 +131,4 @@ class gsvobject:
             img.save(fullpath)
         except AttributeError:
             print('Could not save image')
-def get_elevation(Lat, Lon):
-    '''
-    Returns elevation in meters given Lat, Lon input
-    '''
-    Lat = str(Lat)
-    Lon = str(Lon)
-    baseurl = 'https://maps.googleapis.com/maps/api/elevation/json?locations={},{}&key={}'.format(Lat, Lon, GoogleAPIKey)
-    rr = requests.get(baseurl).json()
-    if rr['status']=='OK':
-        #print(rr['results'])
-        return rr['results'][0]['elevation']
-        
-    else:
-        return 'Invalid Request, status: '+rr['status']
             
