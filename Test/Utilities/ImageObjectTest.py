@@ -24,9 +24,6 @@ ii.add_feature([222,338], g.CameraData, g.image_array, panoid = g.metadata['pano
 #  
         
 #ii.add_feature([444,333], ftype='type1')   
-
-
-#
 #from AOIfunctions import gridgen
 #
 #xy1 = [-105.260432, 40.040073]
@@ -50,6 +47,9 @@ ii.add_feature([222,338], g.CameraData, g.image_array, panoid = g.metadata['pano
 #            img_panos.append(g.metadata['pano_id'])
 #            g.getimage(heading = 0, pitch = 0)
 #            img_data.append(g)
+
+#
+
 #            
 
 #    
