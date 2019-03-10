@@ -10,8 +10,7 @@ def get_elevation(Lat, Lon):
     '''
     Lat = str(Lat)
     Lon = str(Lon)
-    baseurl = 'https://maps.googleapis.com/maps/api/elevation/json?locations={}
-    , {}&key={}'.format(Lat, Lon, GoogleAPIKey)
+    baseurl = 'https://maps.googleapis.com/maps/api/elevation/json?locations={}, {}&key={}'.format(Lat, Lon, GoogleAPIKey)
     rr = requests.get(baseurl).json()
     if rr['status']=='OK':
         #print(rr['results'])

@@ -125,3 +125,34 @@ def download(url, out_dir, filename):
         with open(file_path, 'wb') as f:
             r.raw.decode_content = True
             shutil.copyfileobj(r.raw, f)
+            
+# DOWNLOAD ALL IMAGES (NOTE THAT DEFAULT HEADING, PITCH AND SIZE VALUES EXIST)
+from gsvapifuns import panodnld
+
+
+import requests
+r = requests.get(uu)
+type(r.content)
+
+def download(url, out_dir, filename):
+    if not path.isdir(out_dir):
+        makedirs(out_dir)
+    file_path = os.path.join(out_dir, filename)
+    r = requests.get(url, stream=True)
+    if r.status_code == 200: # if request is successful
+        with open(file_path, 'wb') as f:
+            r.raw.decode_content = True
+            shutil.copyfileobj(r.raw, f)
+            
+s = {'slat':'41.341536', 'slon':'-106.305714'}
+
+
+#https://maps.googleapis.com/maps/api/streetview/metadata?location=78.648401,14.194336&key=YOUR_API_KEY
+xx = 41.341536
+yy = -106.305714
+murl = 'https://maps.googleapis.com/maps/api/streetview/metadata'
+
+qq = murl+'?location={},{}&key={}'.format(str(xx), str(yy), GoogleAPIKey)
+
+
+metadata = requests.get(qq, stream=True).json()

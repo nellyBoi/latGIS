@@ -45,7 +45,7 @@ class gsvobject:
     Instantiates an object to hold Google Streetview data
     '''
     oid=0
-    __imagecols = ['oid', 'panoid', 'metadata', 'cameradata', 'imagearray', 'searchcoords']
+    __imagecols = ['oid', 'panoid', 'metadata', 'searchcoords', 'cameradata', 'imagearray']
     __searchcols = ['oid', 'panoid', 'metadata', 'searchcoords']
     def __init__(self):
 
@@ -80,7 +80,7 @@ class gsvobject:
                     newfeature['searchcoords'] = [slat,slon]
                     # Append to features dataframe
                     self.search_results = self.search_results.append(newfeature, ignore_index=True, sort=False)
-        return
+        return self.search_results
 
     def getimage(self,
                  imagemetadata: DataFrame,
@@ -109,12 +109,15 @@ class gsvobject:
                 rurl = self.api_url+params_text
                 self.rresponse = requests.get(rurl)
                 if self.rresponse.status_code == 200:
-                    self.image_array = np.array(Image.open(BytesIO(self.rresponse.content)))
+                    newimage.image_array = np.array(Image.open(BytesIO(self.rresponse.content)))
                     elev = get_elevation(self.metadata['location']['lat'], self.metadata['location']['lng'])
-                    self.CameraData = CameraData([self.metadata['location']['lat'],
+                    newimage.cameradata = CameraData([self.metadata['location']['lat'],
                                                   self.metadata['location']['lng'],
                                                   elev], heading, pitch)
-                    return [self.CameraData, self.metadata['pano_id'], self.image_array]
+                    # HERE
+                    # now left merge with image_data DF based on pano ID, heading, and pitch
+                    # Print if new or duplicate with CameraData
+        
         
         except AttributeError:
             print('No pano id ')
