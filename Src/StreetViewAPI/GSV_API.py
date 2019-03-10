@@ -56,6 +56,8 @@ class gsvobject:
         self.image_data = DataFrame(columns = gsvobject.__imagecols)
         
     def getpanoid(self, search_latlon:list):
+        # TODO?: include search cases where no pano_id is returned??
+        
         # returns the nearest panoid given a lat and lon within a 50 meter radius
         for coordpair in search_latlon:
             slat = coordpair[0]
@@ -66,7 +68,7 @@ class gsvobject:
                                                 GoogleAPIKey)
             # json results as dict
             results = requests.get(metadata_query, stream=True).json()
-            # append if unique
+            # if unique:
             if 'pano_id' in results:
                 if results['pano_id'] not in self.search_results['panoid']:
                     gsvobject.oid += 1
@@ -78,33 +80,42 @@ class gsvobject:
                     newfeature['searchcoords'] = [slat,slon]
                     # Append to features dataframe
                     self.search_results = self.search_results.append(newfeature, ignore_index=True, sort=False)
-                # Need to add else to account for cases where search is False
-    
+        return
+
     def getimage(self,
-                 heading:int,
-                 pitch:float,
+                 imagemetadata: DataFrame,
+                 heading: int,
+                 pitch: float,
                  fov = 180,
                  size = '640x640',
                  source = 'outdoor'):
+        newimage = dict.fromkeys(gsvobject.__searchcols, 0)
+        '''
+        Need to use a left merge where the dup cols are panoid, heading, pitch
+        '''
+        
         try:
-            self.params['pano'] = self.metadata['pano_id']
-            self.params['size'] = size
-            self.params['heading'] = heading
-            self.params['pitch'] = pitch
-            self.params['fov'] = fov
-            self.params['source'] = source
-            self.params['key'] = GoogleAPIKey
-            params_text = '&'.join(['%s=%s' % (key, value) for (key, value) in self.params.items()])
-            rurl = self.api_url+params_text
-            self.rresponse = requests.get(rurl)
-            if self.rresponse.status_code == 200:
-                self.image_array = np.array(Image.open(BytesIO(self.rresponse.content)))
-                elev = get_elevation(self.metadata['location']['lat'], self.metadata['location']['lng'])
-                self.CameraData = CameraData([self.metadata['location']['lat'],
-                                              self.metadata['location']['lng'],
-                                              elev], heading, pitch)
-                return [self.CameraData, self.metadata['pano_id'], self.image_array]
-    
+            for i, row in imagemetadata.iterrows():
+                params = {}
+                
+                params['pano'] = row['panoid']
+                params['size'] = size
+                params['heading'] = heading
+                params['pitch'] = pitch
+                params['fov'] = fov
+                params['source'] = source
+                params['key'] = GoogleAPIKey
+                params_text = '&'.join(['%s=%s' % (key, value) for (key, value) in self.params.items()])
+                rurl = self.api_url+params_text
+                self.rresponse = requests.get(rurl)
+                if self.rresponse.status_code == 200:
+                    self.image_array = np.array(Image.open(BytesIO(self.rresponse.content)))
+                    elev = get_elevation(self.metadata['location']['lat'], self.metadata['location']['lng'])
+                    self.CameraData = CameraData([self.metadata['location']['lat'],
+                                                  self.metadata['location']['lng'],
+                                                  elev], heading, pitch)
+                    return [self.CameraData, self.metadata['pano_id'], self.image_array]
+        
         except AttributeError:
             print('No pano id ')
             
