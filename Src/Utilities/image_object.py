@@ -22,33 +22,35 @@ class image_obj:
     oid = 0     
     __cols = ['oid', 'cameradata', 'pix_coords', 'imagearray']         
     def __init__(self):
-        # Increment object ID
-        image_obj.oid += 1
-        self.oid = image_obj.oid
+
         self.features = DataFrame(columns = image_obj.__cols)
 
     def add_feature(self, pixelcoords:list, cameradata, imagearray, **kwargs):
-            newfeature = dict.fromkeys(image_obj.__cols, 0)
 
-            newfeature['oid'] = self.oid
-            newfeature['pix_coords'] = pixelcoords
-            newfeature['cameradata'] = cameradata
-            newfeature['imagearray'] = imagearray
-
-            if 'ftype' in kwargs:
-                newfeature['ftype'] = kwargs['ftype']
-            if 'panoid' in kwargs:
-                newfeature['panoid'] = kwargs['panoid']
-            if 'date' in kwargs:
-                newfeature['date'] = kwargs['date']
-            if 'datasource' in kwargs:
-                newfeature['datasource'] = kwargs['date']
-            self.features = self.features.append(newfeature, ignore_index=True, sort=False)
-            return
-    def showimage(self, imageindex):
         
+        # Create new feature
+        newfeature = dict.fromkeys(image_obj.__cols, 0)
+        newfeature['oid'] = self.oid
+        newfeature['pix_coords'] = pixelcoords
+        newfeature['cameradata'] = cameradata
+        newfeature['imagearray'] = imagearray
+
+        if 'ftype' in kwargs:
+            newfeature['ftype'] = kwargs['ftype']
+        if 'panoid' in kwargs:
+            newfeature['panoid'] = kwargs['panoid']
+        if 'date' in kwargs:
+            newfeature['date'] = kwargs['date']
+        if 'datasource' in kwargs:
+            newfeature['datasource'] = kwargs['date']
+        self.features = self.features.append(newfeature, ignore_index=True, sort=False)
+        
+        # Increment object ID
+        image_obj.oid += 1
+        self.oid = image_obj.oid
+
+    def showimage(self, image_array):
         try:
-            image_array = self.features[imageindex]
             img = Image.fromarray(image_array, 'RGB')
             img.show()
         except AttributeError:

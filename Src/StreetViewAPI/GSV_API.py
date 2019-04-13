@@ -57,7 +57,6 @@ class gsvobject:
         
     def getpanoid(self, search_latlon:list):
         # TODO?: include search cases where no pano_id is returned??
-        
         # returns the nearest panoid given a lat and lon within a 50 meter radius
         for coordpair in search_latlon:
             slat = coordpair[0]
@@ -80,7 +79,7 @@ class gsvobject:
                     newfeature['searchcoords'] = [slat,slon]
                     # Append to features dataframe
                     self.search_results = self.search_results.append(newfeature, ignore_index=True, sort=False)
-        return self.search_results
+        self.search_results.drop_duplicates(subset=['panoid'], inplace=True)
 
     def getimage(self,
                  imagemetadata: DataFrame,
@@ -89,57 +88,58 @@ class gsvobject:
                  fov = 180,
                  size = '640x640',
                  source = 'outdoor'):
-        newimage = dict.fromkeys(gsvobject.__searchcols, 0)
-        '''
-        Need to use a left merge where the dup cols are panoid, heading, pitch
-        '''
-        
-        try:
-            for i, row in imagemetadata.iterrows():
-                params = {}
-                
-                params['pano'] = row['panoid']
-                params['size'] = size
-                params['heading'] = heading
-                params['pitch'] = pitch
-                params['fov'] = fov
-                params['source'] = source
-                params['key'] = GoogleAPIKey
-                params_text = '&'.join(['%s=%s' % (key, value) for (key, value) in self.params.items()])
-                rurl = self.api_url+params_text
-                self.rresponse = requests.get(rurl)
-                if self.rresponse.status_code == 200:
-                    newimage.image_array = np.array(Image.open(BytesIO(self.rresponse.content)))
-                    elev = get_elevation(self.metadata['location']['lat'], self.metadata['location']['lng'])
-                    newimage.cameradata = CameraData([self.metadata['location']['lat'],
-                                                  self.metadata['location']['lng'],
-                                                  elev], heading, pitch)
-                    # HERE
-                    # now left merge with image_data DF based on pano ID, heading, and pitch
-                    # Print if new or duplicate with CameraData
-        
-        
-        except AttributeError:
-            print('No pano id ')
+        for i, row in imagemetadata.iterrows():
+            # will pass search_results but could pass any dataframe 
+            newimage = dict.fromkeys(gsvobject.__imagecols, 0)
+            # prepare parameters for get image request from panoid
             
-    def showimage(self):
+            params = {}
+            params['pano'] = row['panoid']
+            params['size'] = size
+            params['heading'] = heading
+            params['pitch'] = pitch
+            params['fov'] = fov
+            params['source'] = source
+            params['key'] = GoogleAPIKey
+            params_text = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
+            rurl = self.api_url+params_text
+            # request to GGAPI - get image
+            rresponse = requests.get(rurl)
+            if rresponse.status_code == 200:
+                newimage['imagearray'] = np.array(Image.open(BytesIO(rresponse.content)))
+                elev = get_elevation(row.metadata['location']['lat'], row.metadata['location']['lng'])
+                newimage['cameradata'] = CameraData([row.metadata['location']['lat'],
+                                              row.metadata['location']['lng'],
+                                              elev], heading, pitch)
+                #['oid', 'panoid', 'metadata', 'searchcoords', 'cameradata', 'imagearray']
+                newimage['oid'] = row['oid']
+                newimage['panoid'] = row['panoid']
+                newimage['metadata'] = row['metadata']
+                newimage['searchcoords'] = row['searchcoords']
+                
+                # Append 
+                self.image_data = self.image_data.append(newimage, ignore_index=True, sort=False)
+        self.image_data.drop_duplicates(subset=['panoid', 'cameradata'], inplace=True)
+
+          
+    def showimage(self, theimage):
         '''
         Show image in default image viewer
         '''
         try:
-            img = Image.fromarray(self.image_array, 'RGB')
+            img = Image.fromarray(theimage, 'RGB')
             img.show()
         except AttributeError:
-            print('Image Array does not exist! - Run "getimage" first.')
+            print('Invalid image array')
     
     
-    def saveimage(self, outpath, filename, imgformat='png'):
+    def saveimage(self, theimage, outpath, filename, imgformat='png'):
         '''
         Save image to specified path
         '''
         
         try:
-            img = Image.fromarray(self.image_array, 'RGB')
+            img = Image.fromarray(theimage, 'RGB')
             fullpath = os.path.join(outpath, filename+'.'+imgformat)
             print(fullpath)
             img.save(fullpath)
