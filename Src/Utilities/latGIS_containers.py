@@ -60,7 +60,11 @@ class ObjectLocation:
     deg2rad = np.pi/180 # degrees to radians
     focalLength = float
     
+<<<<<<< HEAD
     coordTransfers = CoordTransfers() 
+=======
+    coordTransfers = CoordTransfers()
+>>>>>>> maxxy
     
     
     def __init__(self, origCameraData: CameraData, origPixel: list):

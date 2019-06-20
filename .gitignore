@@ -30,3 +30,18 @@
 *.exe
 *.out
 *.app
+
+# Spyder Project Files
+.spyproject/
+
+#API key
+Src/StreetViewAPI/ggapikeydoc.py
+
+# All csv items
+*.csv
+
+#Images
+*.png
+*.jpg
+*.jpeg
+

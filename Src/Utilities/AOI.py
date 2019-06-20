@@ -22,7 +22,7 @@ def longbasedonlat(inlat):
 
 def gridgen(coordpair1, coordpair2, stepsize=1):
     #GENERATES A MESHGRID GIVEN TWO COORDINATE PAIRS AS DIAGONAL CORNERS, AND A STEP SIZE IN METERS
-    # COORD PAIRS MUST BE SUPPLIED IN LON,LAT FORMAT TO MIRROR X,Y NOTATION
+    # COORD PAIRS MUST BE SUPPLIED IN LON,LAT FORMAT TO MATCH X,Y NOTATION
     minlat = min([abs(coordpair1[1]),abs(coordpair2[1])])
     lonstep = longbasedonlat(minlat)*stepsize
     latstep = (1/111111)*stepsize
