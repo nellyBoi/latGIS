@@ -1,33 +1,123 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from munkres import Munkres
+from munkres import Munkres, DISALLOWED_OBJ
+from latGIS_containers import ObjectLocation, CameraData
+from pandas import DataFrame as df
+from Object_Location_Model import Object_Location_Model
 
+# Do we need this or does the other file pull it in?
+DISALLOWED = DISALLOWED_OBJ()
+DISALLOWED_PRINTVAL = "D"
 
 class TargetTracker:
     
     # static variables
     maxObservations = 25
+    maxTracks = 50
     LARGE_VAL = 10000000
+    SMALL_VAL = 1/1000000
+    
+    # instantiate the assignment algorithm
+    assignmentAlgorithm = Munkres()
+    
+    # instantiate the object motion model
+    objectMotion = Object_Location_Model()
     
     def __init__(self, gateSize: int):
         
         self.gateSize = gateSize # size of gate in pixels
         self.assignmentAlgorithm = Munkres()
-        # TODO deal with track ID's, data storage, and do we do triangulation 
-        # here or do we save that for somewhere else?
         
-    def generateTracks(self, observations: list, currentTracks: list) -> list:
-        # this function ingests a list of observations in pixel (row, col) 
-        # coordinates and a list of current track predictions in (row, col) 
-        # coordinates and using a list of TODO, answer this.
-        costMatrix = self.buildCostMatrix(observations, currentTracks)
-        indexes = self.assignmentAlgorithm.compute(costMatrix) 
+        # start Pandas.DataFrame
+        columns = ['trackID', 'ObjectLocation_instance']
+        self.__trackDataArray = df(columns = columns, index = 
+            np.linspace(0, TargetTracker.maxTracks - 1, TargetTracker.maxTracks))
         
+        # This function passes in a list of 'observations' as pixels [row, col]
+        # and a current CameraData instance associated with them. It attempts to associate
+        # the new observations with tracks. For those observations that an association is
+        # not made, new object instances will begin.
+    def generateTracks(self, observations: list, curCameraData: CameraData) -> list:
         
-    def buildCostMatrix(self, observations: list, currentTracks: list) -> np.array:
+        # for output
+        results = []
+        
+        # grab size of current __trackDataArray
+        curTrks = self.__trackDataArray['trackID'].count()
+        
+        # Get track ID's. NOTE: This is a list. trackIDs
+        trackIDs = np.array(self.__trackDataArray[self.__trackDataArray['trackID'].notnull()]['trackID']).tolist()
+        
+        # NOTE: This will be used to remove unused tracks at the end. As tracks are used they will be
+        # removed from this list, and the remaining list will be removed from self.__trackDataArray
+        trackIDsUnused = trackIDs.copy()
+        
+        # make a prediction for each current track, NOTE: the loop doesn't execute if curTrks = 0
+        predictions = []
+        for idx in np.arange(curTrks):
+            
+            trkObject = self.__trackDataArray['ObjectLocation_instance'][idx]
+            trkCameraData = trkObject.getRecentCameraData()
+            trkPixel = trkObject.getRecentPixel()
+            
+            predictedPixel = TargetTracker.objectMotion.objectLocationPredictor(objRowCol = trkPixel,
+                camData1 = trkCameraData, camData2 = curCameraData)
+            
+            predictions.append(predictedPixel)
+            
+        # build cost matrix with observations and predictions
+        costMatrix = TargetTracker.buildCostMatrix(self, observations, predictions)
+        
+        # run the association algorithm on the cost matrix
+        indices = TargetTracker.assignmentAlgorithm.compute(costMatrix)
+        
+        # loop over indexes, if an index matches a track than add to that tracks ObjectLocation instance,
+        # if an index is out of the track columns of the cost matrix than instantiate a new track and a 
+        # new object. Finally, eliminate old tracks and add their ObjectLocation instances
+        # to the list for output. ALSO can output result from each track as it is updated, output all tracks here!!
+        # YOU ARE HERE
+        for idx in indices:
+            
+            obsIdx = idx[0]
+            predIdx = idx[1]
+            
+            if (predIdx) < len(trackIDs):
+                # match trackID to observation, update ObjectLocation object with camera data and pixel
+                trackID = self.__trackDataArray['trackID'][predIdx]
+                trackIDidx = int(np.where(self.__trackDataArray['trackID'] == trackID)[0])
+                
+                # TODO: PASS BY REFERENCE
+                self.__trackDataArray['ObjectLocation_instance'][trackIDidx].addNewObservation(
+                        cameraData = curCameraData, pixel = observations[obsIdx])
+                
+                # remove used track from unused list
+                trackIDsUnused.remove(trackID)
+                
+                # add object ID and location and error updates to the list of results for end of generateTracks call
+                curResults = self.__trackDataArray['ObjectLocation_instance'][trackIDidx].getResults()
+                results.append(curResults)
+                
+            else:
+                # instantiate new Object, let object create track ID, once it instantiates a new ObjectLocation object
+                newObj = ObjectLocation(origCameraData = curCameraData, origPixel = observations[obsIdx])
+                newID = newObj.objID
+                
+                # TODO: PASS BY REFERENCE
+                self.__trackDataArray['trackID'] = newID
+                self.__trackDataArray['ObjectLocation_instance'][curTrks  + idx] = newObj
+                
+        # remove tracks that were NOT updated from the track list
+        for dropID in trackIDsUnused:
+            dropIDidx = int(np.where(self.__trackDataArray['trackID'] == dropID)[0])
+            self.__trackDataArray = self.__trackDataArray.drop(dropIDidx)
+            
+        return results
+
+                
+    def buildCostMatrix(self, observations: list, predictions: list) -> np.array:
         
         numObservations = len(observations)
-        numTracks = len(currentTracks)
+        numTracks = len(predictions)
         
         # value of perfect overlap, zero distance between obs and track
         bestMatch = np.pi*self.gateSize**2
@@ -41,7 +131,7 @@ class TargetTracker:
         for obsIdx in np.arange(numObservations):
             for trkIdx in np.arange( numTracks):
                 curObs = observations[obsIdx] # should be a len 2 list here
-                curTrk = currentTracks[trkIdx] # should be a len 2 list here
+                curTrk = predictions[trkIdx] # should be a len 2 list here
                 
                 # value of overlapping gates
                 matchVal = self.gate(prediction = curTrk, observation = curObs)

@@ -842,8 +842,7 @@ if __name__ == '__main__':
         ([[4, 5, 6, DISALLOWED],
           [1, 9, 12, 11],
           [DISALLOWED, 5, 4, DISALLOWED],
-          [12, 12, 12, 10]],
-         20),
+          [12, 12, 12, 10]],20),
 
         # DISALLOWED to force pairings
         ([[1, DISALLOWED, DISALLOWED, DISALLOWED],
