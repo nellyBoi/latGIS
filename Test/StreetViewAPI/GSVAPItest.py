@@ -31,5 +31,6 @@ gg = gsvobject()
 # Get Images
 gg.getimage(imagemetadata=gg.search_results, heading=90, pitch=0)
 
-# show image:
+# display individual image:
 gg.showimage(gg.image_data.imagearray[3])
+

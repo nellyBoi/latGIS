@@ -45,3 +45,6 @@ Src/StreetViewAPI/ggapikeydoc.py
 *.jpg
 *.jpeg
 
+# pyc
+*.pyc
+
