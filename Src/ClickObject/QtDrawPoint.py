@@ -12,22 +12,22 @@ class ImageScroller(QtWidgets.QWidget):
         self._image = QtGui.QPixmap(r"C:\Users\Max Marno\Documents\Projects\GSV\TESTIMAGE.png")
 
     def paintEvent(self, paint_event):
-        painter = QtGui.QPainter(self)
-        painter.drawPixmap(self.rect(), self._image)
+        paint = QtGui.QPainter(self)
+        paint.drawPixmap(self.rect(), self._image)
         pen = QtGui.QPen()
         pen.setColor(QColor(255, 0, 0, 127))
         pen.setWidth(20)
         
-        painter.setPen(pen)
-        #painter.setBrush(Qt.CrossPattern)
-        #painter.setBrush(Qt.red)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        paint.setPen(pen)
+        #paint.setBrush(Qt.CrossPattern)
+        #paint.setBrush(Qt.red)
+        paint.setRenderHint(QtGui.QPainter.Antialiasing, True)
         
-        #painter.drawPoint(300, 300)
-        #painter.drawLine(100, 100, 400, 400)
+        #paint.drawPoint(300, 300)
+        #paint.drawLine(100, 100, 400, 400)
         for pos in self.chosen_points:
-            painter.drawPoint(pos)
-            #painter.drawEllipse(pos, 10,10)
+            paint.drawPoint(pos)
+            #paint.drawEllipse(pos, 10,10)
 
     def mouseReleaseEvent(self, cursor_event):
         self.chosen_points.append(cursor_event.pos())
@@ -39,12 +39,15 @@ class ImageScroller(QtWidgets.QWidget):
             print('Delete Last Point')
             self.chosen_points.pop()
         self.update()
+    def returnSelectedPoints(self):
+        if len(self.chosen_points) > 0:
+            return [[i.x(), i.y()] for i in self.chosen_points]
 
 if __name__ == '__main__':
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
     w = ImageScroller()
-    w.resize(640, 480)
+    #w.resize(640, 480)
     w.show()
-    #sys.exit(app.exec_())
+    sys.exit(app.exec_())
