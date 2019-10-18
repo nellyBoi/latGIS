@@ -21,7 +21,7 @@ class TargetTracker:
     assignmentAlgorithm = Munkres()
     
     # instantiate the object motion model
-    objectMotion = Object_Location_Model()
+    objectMotion = Object_Location_Model(5) # TODO CHANGE
     
     def __init__(self, gateSize: int):
         

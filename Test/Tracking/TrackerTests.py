@@ -36,5 +36,5 @@ test('Zero Overlap', (overlapPred == 0 ))
 # cost matrix stuff
 obs = [[1, 2], [100, 200], [250, 250]]
 trks = [[102, 200], [500, 25], [1, 6]]
-costMat = trackerObj.buildCostMatrix(observations = obs, currentTracks = trks)
+costMat = trackerObj.buildCostMatrix(observations = obs, predictions = trks)
 print(costMat)

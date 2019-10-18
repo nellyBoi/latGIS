@@ -64,8 +64,3 @@ print(str(cam.LatLonEl) + str(cam.heading) + str(cam.pitch))
 print("Pixel: ")
 print(objObj.getRecentPixel())
 
-
-
-
-
-
