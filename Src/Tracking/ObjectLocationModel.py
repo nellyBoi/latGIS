@@ -63,20 +63,22 @@ import numpy as np
 from enu_to_ecef import enu2ecef
 from rotation import Rotate
 from coord_transfers import CoordTransfers
-from latGIS_containers import CameraData   
-from CONSTANTS import constants     
-  
-class Object_Location_Model:
+from lat_gis import CameraData   
+from constants import Constants     
+
+########################################################################################################################  
+class ObjectLocationModel:
     
     coordTransfers = CoordTransfers() 
     
+    ####################################################################################################################
     def __init__(self, W: float):
         
-        # constants
-        self.FOV = constants.FOV
-        self.sensorSize = constants.sensorSize
-        self.rad2deg = constants.rad2deg
-        self.deg2rad = constants.deg2rad
+        # Constants
+        self.FOV = Constants.FOV
+        self.SENSOR_SIZE = Constants.SENSOR_SIZE
+        self.RAD2DEG = Constants.RAD2DEG
+        self.DEG2RAD = Constants.DEG2RAD
         
         # calculated values
         self.focalLength = self.calcVirtualFocalLength()
@@ -84,7 +86,7 @@ class Object_Location_Model:
         # variables to be moved out of _init__
         self.W_est = W # (m) : estimated closest dist. to obj. from D vector.
         
-    
+    ####################################################################################################################
     def objectLocationPredictor(self, objRowCol: list, camData1: CameraData, camData2: CameraData, degFlag : bool = True )-> list:
         
         '''This function will be used to predict the objects location in frame t+1 
@@ -99,15 +101,15 @@ class Object_Location_Model:
         '''
         
         # transfer Latitude, Longitude to ECEF, converted to arrays
-        frame_t1_ecef = np.asarray(Object_Location_Model.coordTransfers.LLE_to_ECEF(LLE = camData1.LatLonEl))
-        frame_t2_ecef = np.asarray(Object_Location_Model.coordTransfers.LLE_to_ECEF(LLE = camData2.LatLonEl))
+        frame_t1_ecef = np.asarray(ObjectLocationModel.coordTransfers.LLE_to_ECEF(LLE = camData1.LatLonEl))
+        frame_t2_ecef = np.asarray(ObjectLocationModel.coordTransfers.LLE_to_ECEF(LLE = camData2.LatLonEl))
         
         # degrees to radians, if (degFlag == True)
         if (degFlag == 1):    
-            heading_t1 = camData1.heading*self.deg2rad
-            pitch_t1 = camData1.pitch*self.deg2rad
-            heading_t2 = camData2.heading*self.deg2rad
-            pitch_t2 = camData2.pitch*self.deg2rad
+            heading_t1 = camData1.heading*self.DEG2RAD
+            pitch_t1 = camData1.pitch*self.DEG2RAD
+            heading_t2 = camData2.heading*self.DEG2RAD
+            pitch_t2 = camData2.pitch*self.DEG2RAD
         else:
             heading_t1 = camData1.heading
             pitch_t1 = camData1.pitch
@@ -121,7 +123,7 @@ class Object_Location_Model:
         
         # if the camera has not moved place the direction pixel in the center of the image
         if (deltaL == 0):
-            directionPixel = [self.sensorSize[0]/2, self.sensorSize[1]/2]
+            directionPixel = [self.SENSOR_SIZE[0]/2, self.SENSOR_SIZE[1]/2]
         else:
             # get direction of movement in camera coordinates
             directionPixel = self.getDirectionPixel(frame_t1_ecef, frame_t2_ecef, heading_t1,
@@ -182,7 +184,7 @@ class Object_Location_Model:
               
         return PIXEL_t2
     
-
+    ####################################################################################################################
     def getDirectionPixel(self, frame_t1_ecef: np.ndarray, frame_t2_ecef: np.ndarray,
                           heading: float, pitch: float, LatLonEl: list)-> list:
         
@@ -231,29 +233,29 @@ class Object_Location_Model:
         angleTemp = self.angleBetweenVectors(vecTemp, Normal)
         
         if (angleTemp > np.pi/2):
-            COL = np.floor(self.sensorSize[1])/2 - columnOffset
+            COL = np.floor(self.SENSOR_SIZE[1])/2 - columnOffset
         else:
-            COL = np.floor(self.sensorSize[1])/2 + columnOffset
+            COL = np.floor(self.SENSOR_SIZE[1])/2 + columnOffset
          
         # use pitch directly to get ROW
         if (pitch != 0): 
             rowOffset = self.calcPixelOffset(np.abs(pitch))
             if (pitch > 0):
-                ROW = np.floor(self.sensorSize[0])/2 + rowOffset
+                ROW = np.floor(self.SENSOR_SIZE[0])/2 + rowOffset
             else:
-                ROW = np.floor(self.sensorSize[0])/2 - rowOffset
+                ROW = np.floor(self.SENSOR_SIZE[0])/2 - rowOffset
             
         else:
-            ROW = np.floor(self.sensorSize[0])/2
+            ROW = np.floor(self.SENSOR_SIZE[0])/2
             
         return [ROW, COL]
     
-    
+    ####################################################################################################################
     def calculateNormal(self, LatLonEl):
         
         # LatLon should be 1x2 list
-        Lat = self.deg2rad*LatLonEl[0]
-        Lon = self.deg2rad*LatLonEl[1]
+        Lat = self.DEG2RAD*LatLonEl[0]
+        Lon = self.DEG2RAD*LatLonEl[1]
         
         normal = np.zeros((3,))
         normal[0] = np.cos(Lat)*np.cos(Lon)
@@ -262,22 +264,24 @@ class Object_Location_Model:
         
         return normal
     
-    '''angle returned in radians'''
+    ####################################################################################################################
     def angleBetweenVectors(self, vec1, vec2):
-        
+        """
+        angle returned in radians
+        """
         angle = np.arccos((np.dot(vec1,vec2))/(np.linalg.norm(vec1)*np.linalg.norm(vec2)))
         return angle
     
-    
+    ####################################################################################################################
     def calcVirtualFocalLength(self):
         '''Pixel units'''
         FOV = self.FOV
         # focal length calculation is based off 2nd sensor size value, numCols
-        numCols = self.sensorSize[1]
-        focalLength = numCols/(2*np.arctan(self.deg2rad*FOV/2))
+        numCols = self.SENSOR_SIZE[1]
+        focalLength = numCols/(2*np.arctan(self.DEG2RAD*FOV/2))
         return focalLength
     
-    
+    ####################################################################################################################
     def calcPixelOffset(self, angle):
         
         # NOTE: angle must be positive
@@ -285,7 +289,7 @@ class Object_Location_Model:
         offset = (self.focalLength)*np.tan(angle)
         return offset
     
-    
+    ####################################################################################################################
     def getNorthECEF(self, LatLonEl: list) -> np.ndarray:
         
         # create p0, origin of ENU in ECEF

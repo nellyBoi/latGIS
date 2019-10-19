@@ -16,7 +16,7 @@ def test(name: str, passed: bool):
     else:
         print('FAILED')
 
-trackerObj = TargetTracker(gateSize = 5)
+trackerObj = TargetTracker(gateSize = 5, distToDVec = 5)
 #==============================================================================
 # test full overlap
 overlapPred = trackerObj.gate(prediction = [5,5], observation = [5, 5])
@@ -34,7 +34,7 @@ test('Zero Overlap', (overlapPred == 0 ))
 #==============================================================================
 
 # cost matrix stuff
-obs = [[1, 2], [100, 200], [250, 250]]
-trks = [[102, 200], [500, 25], [1, 6]]
-costMat = trackerObj.buildCostMatrix(observations = obs, predictions = trks)
-print(costMat)
+obs = [[90, 5], [50, 92], [50, 50], [5, 90]]
+trks = [[5, 5], [50, 50], [50, 90]]
+costMat = trackerObj.buildCostMatrix(observations = obs, predictions = trks, printMatrix = True)
+

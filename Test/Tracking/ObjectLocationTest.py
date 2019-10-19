@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Tracking'))
 sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Utilities'))
 
 
-from latGIS_containers import CameraData, ObjectLocation
+from lat_gis import CameraData, ObjectLocation
 from coord_transfers import CoordTransfers
 CT = CoordTransfers()
 

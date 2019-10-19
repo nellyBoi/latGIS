@@ -1,44 +1,57 @@
 # -*- coding: utf-8 -*-
+"""
+Nelly Kane
+10.18.2019
+
+TargetTracker.py
+"""
 import numpy as np
-from munkres import Munkres, DISALLOWED_OBJ
-from latGIS_containers import ObjectLocation, CameraData
+from munkres import Munkres
+from lat_gis import ObjectLocation, CameraData
 from pandas import DataFrame as df
-from Object_Location_Model import Object_Location_Model
+from ObjectLocationModel import ObjectLocationModel
 
-# Do we need this or does the other file pull it in?
-DISALLOWED = DISALLOWED_OBJ()
-DISALLOWED_PRINTVAL = "D"
-
+########################################################################################################################
 class TargetTracker:
-    
+    """
+    A class to compute object-to-object associations between frames with knowledge of sensor location/orientation 
+    metadata and a predictive model approximating where an object might appear in a future frame given a current frame.
+    """
     # static variables
     maxObservations = 25
     maxTracks = 50
-    LARGE_VAL = 10000000
-    SMALL_VAL = 1/1000000
+    LARGE_VAL = np.inf
+    SMALL_VAL = 1/LARGE_VAL
     
     # instantiate the assignment algorithm
     assignmentAlgorithm = Munkres()
     
-    # instantiate the object motion model
-    objectMotion = Object_Location_Model(5) # TODO CHANGE
-    
-    def __init__(self, gateSize: int):
-        
+    ####################################################################################################################
+    def __init__(self, gateSize: int, distToDVec: float):
+        """
+        Constructor
+            gateSize: circular gate size used by the cost matrix to compute possible associations
+            distToDVec: shortest distance from object to direction vector (vector in 3D space from camera pos t to t+1) 
+        """
         self.gateSize = gateSize # size of gate in pixels
-        self.assignmentAlgorithm = Munkres()
+        
+        # instantiate the object motion model
+        self.objectMotion = ObjectLocationModel(W = distToDVec) 
         
         # start Pandas.DataFrame
         columns = ['trackID', 'ObjectLocation_instance']
         self.__trackDataArray = df(columns = columns, index = 
             np.linspace(0, TargetTracker.maxTracks - 1, TargetTracker.maxTracks))
         
-        # This function passes in a list of 'observations' as pixels [row, col]
-        # and a current CameraData instance associated with them. It attempts to associate
-        # the new observations with tracks. For those observations that an association is
-        # not made, new object instances will begin.
+    ####################################################################################################################
     def generateTracks(self, observations: list, curCameraData: CameraData) -> list:
-        
+        """
+        This function passes in a list of 'observations' as pixels [row, col] and a current CameraData instance 
+        associated with them. It attempts to associate the new observations with tracks. For those observations that an 
+        association is not made, new object instances will begin.
+            observations: list of [row, col]  lists representing objects
+            curCameraData: CameraData instance associated with observations
+        """
         # for output
         results = []
         
@@ -60,13 +73,13 @@ class TargetTracker:
             trkCameraData = trkObject.getRecentCameraData()
             trkPixel = trkObject.getRecentPixel()
             
-            predictedPixel = TargetTracker.objectMotion.objectLocationPredictor(objRowCol = trkPixel,
+            predictedPixel = self.objectMotion.objectLocationPredictor(objRowCol = trkPixel,
                 camData1 = trkCameraData, camData2 = curCameraData)
             
             predictions.append(predictedPixel)
             
         # build cost matrix with observations and predictions
-        costMatrix = TargetTracker.buildCostMatrix(self, observations, predictions)
+        costMatrix = self.buildCostMatrix(observations, predictions)
         
         # run the association algorithm on the cost matrix
         indices = TargetTracker.assignmentAlgorithm.compute(costMatrix)
@@ -113,9 +126,11 @@ class TargetTracker:
             
         return results
 
-                
-    def buildCostMatrix(self, observations: list, predictions: list) -> np.array:
-        
+    ####################################################################################################################         
+    def buildCostMatrix(self, observations: list, predictions: list, printMatrix: bool = False) -> np.array:
+        """
+        construction of the cost matrix as a numpy array. Size: [number obs, number obs + num current tracks]
+        """
         numObservations = len(observations)
         numTracks = len(predictions)
         
@@ -136,7 +151,11 @@ class TargetTracker:
                 # value of overlapping gates
                 matchVal = self.gate(prediction = curTrk, observation = curObs)
 
-                costVal = bestMatch - matchVal # note: if match = best, cost = 0
+                # TODO revisit this
+                if (matchVal == 0):
+                    costVal = np.inf
+                else:
+                    costVal = bestMatch - matchVal # note: if match = best, cost = 0
                 costMatrix[obsIdx, trkIdx] = costVal
                 
         # build right side of array
@@ -147,10 +166,21 @@ class TargetTracker:
                  else:
                      costMatrix[obsIdx, obsIdx2] = TargetTracker.LARGE_VAL
     
+        if (printMatrix is True):
+            TargetTracker.printArray(costMatrix)
+        
         return costMatrix
     
+    ####################################################################################################################
     def gate(self, prediction: list, observation: list) -> float:
-        
+        """
+        compute gate for given prediction and observation. A gate is considered to be the overlap of two circles of
+        radius 'gateSize' centered at prediction and observation respectively. The more accurate the model used for 
+        predictions the tighter the game size can be. If there is no overlap then no association can be made and this
+        returns a 0 (meaning a new track has to start itself)
+            prediction: [row, col] list
+            observation: [row, col] list
+        """
         rowPred = prediction[0]
         colPred = prediction[1]
         rowObs = observation[0]
@@ -167,3 +197,13 @@ class TargetTracker:
             A = 2*R**2*np.arccos(dist/(2*R)) - (1.0/2.0)* np.sqrt((dist**2)*(2*R - dist)*(2*R + dist))
             return A
     
+    ####################################################################################################################
+    def printArray(array: np.array):
+        """
+        Static method to print cost matrix.
+        """
+        np.set_printoptions(precision=3)
+        print(array)
+            
+        return
+        

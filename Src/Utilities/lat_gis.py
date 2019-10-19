@@ -5,7 +5,7 @@ Author: Nelly Kane
 Originated: 12.03.2018
 
 Repo: latGIS
-File: latGIS_containers.py
+File: lat_gis.py
 
 The defined containers for the latGIS Python architecture.
 
@@ -16,7 +16,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','T
 from pandas import DataFrame as df
 import numpy as np
 from typing import Tuple
-from CONSTANTS import constants
+from constants import Constants
 from triangulate import minDistPoint_3D
 from enu_to_ecef import enu2ecef
 from coord_transfers import CoordTransfers
@@ -63,7 +63,7 @@ class ObjectLocation:
     """ 
     objID = 0 # object counter
     maxObsPerObj = 10 # maximum observations for each object
-    deg2rad = np.pi/180 # degrees to radians
+    DEG2RAD = np.pi/180 # degrees to radians
     focalLength = float
     coordTransfers = CoordTransfers() 
     
@@ -245,8 +245,8 @@ class ObjectLocation:
         
         # degrees to radians, if (degFlag == True)
         if (degFlag == 1):    
-            heading = heading*constants.deg2rad
-            pitch = pitch*constants.deg2rad
+            heading = heading*Constants.DEG2RAD
+            pitch = pitch*Constants.DEG2RAD
             
         # calculate angle-to-target from north contributions from object pixel location
         pitchAdjust, headingAdjust = ObjectLocation.calcAngleOffsets(pixel)
@@ -281,13 +281,13 @@ class ObjectLocation:
         TODO
         """
         # positive col offset pairs with an INCREASE in heading-to-target
-        colPixelOffset = pixel[1] - float(constants.sensorSize[1]/2)
+        colPixelOffset = pixel[1] - float(Constants.SENSOR_SIZE[1]/2)
         colAngle = np.arctan(np.abs(colPixelOffset/ObjectLocation.focalLength))
         if (colPixelOffset < 0):
             colAngle = -colAngle
             
         # positive row offset pairs with a DECREASE in pitch-to-target
-        rowPixelOffset = pixel[0] - float(constants.sensorSize[0]/2)
+        rowPixelOffset = pixel[0] - float(Constants.SENSOR_SIZE[0]/2)
         rowAngle = np.arctan(np.abs(rowPixelOffset/ObjectLocation.focalLength))
         if (rowPixelOffset > 0):
             rowAngle = -rowAngle
@@ -392,10 +392,10 @@ class ObjectLocation:
         """
         Compute virtual focal length in pixel units.
         """
-        FOV = constants.FOV
+        FOV = Constants.FOV
         # focal length calculation is based off 2nd sensor size value, numCols
-        numCols = constants.sensorSize[1]
-        focalLength = numCols/(2*np.arctan(constants.deg2rad*FOV/2))
+        numCols = Constants.SENSOR_SIZE[1]
+        focalLength = numCols/(2*np.arctan(Constants.DEG2RAD*FOV/2))
         return focalLength
  
     

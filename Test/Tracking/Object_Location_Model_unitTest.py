@@ -23,8 +23,8 @@ import matplotlib.pyplot as plt
 from coord_transfers import CoordTransfers
 CT = CoordTransfers()
 # instantiate the class
-from Object_Location_Model import Object_Location_Model
-from  latGIS_containers import CameraData
+from ObjectLocationModel import ObjectLocationModel
+from  lat_gis import CameraData
 
 def unitTest(expression: bool):
     if (expression == True):
@@ -49,7 +49,7 @@ print('TEST 1: Object along direction of travel (prime meridian')
 
 objRowCol = [512, 512]
 
-locModel = Object_Location_Model(2)
+locModel = ObjectLocationModel(2)
 # We will start in ECEF for distance and convert to LLE for function input.
 ecef1 = np.array((6378137, 0, 0)) # meters
 ecef2 = np.array((6378137, 0, 50)) # meters, due north by 5 meters
@@ -79,7 +79,7 @@ print('Location Prediction' + str(PIXELS_OUT))
 # =====================================================================================
 print('TEST 2: Hand calculated pixels for a regular step')
 
-locModel = Object_Location_Model(1)
+locModel = ObjectLocationModel(1)
 objRowCol = [454, 454]
 
 # We will start in ECEF for distance and convert to LLE for function input.
@@ -111,7 +111,7 @@ plt.show()
 # =====================================================================================
 print('TEST 3: One more boresite test, nonzero lats and longs')
 
-locModel = Object_Location_Model(1)
+locModel = ObjectLocationModel(1)
 objRowCol = [512, 512]
 
 # We will start in ECEF for distance and convert to LLE for function input.
