@@ -18,10 +18,15 @@ class TargetTracker:
     metadata and a predictive model approximating where an object might appear in a future frame given a current frame.
     """
     # static variables
-    maxObservations = 25
-    maxTracks = 50
+    MAX_OBSERVATIONS = 10
+    MAX_CURRENT_TRACKS = 10
+    MAX_FINAL_TRACKS = 100
     LARGE_VAL = np.inf
     SMALL_VAL = 1/LARGE_VAL
+    
+    TRACK_ID_STRING = 'trackID'
+    OBJECT_DATA_STRING = 'ObjectData'
+    COLUMNS = [TRACK_ID_STRING, OBJECT_DATA_STRING]
     
     # instantiate the assignment algorithm
     assignmentAlgorithm = Munkres()
@@ -38,38 +43,37 @@ class TargetTracker:
         # instantiate the object motion model
         self.objectMotion = ObjectLocationModel(W = distToDVec) 
         
-        # start Pandas.DataFrame
-        columns = ['trackID', 'ObjectLocation_instance']
-        self.__trackDataArray = df(columns = columns, index = 
-            np.linspace(0, TargetTracker.maxTracks - 1, TargetTracker.maxTracks))
+        # start Pandas.DataFrames
+        self.__currentTrackDataFrame = df(columns = TargetTracker.COLUMNS, index = 
+            np.linspace(0, TargetTracker.MAX_CURRENT_TRACKS - 1, TargetTracker.MAX_CURRENT_TRACKS))
+        
+        self.__finalTrackDataFrame = df(columns = TargetTracker.COLUMNS, index = 
+            np.linspace(0, TargetTracker.MAX_FINAL_TRACKS - 1, TargetTracker.MAX_FINAL_TRACKS))
         
     ####################################################################################################################
-    def generateTracks(self, observations: list, curCameraData: CameraData) -> list:
+    def addFrameObservations(self, observations: list, curCameraData: CameraData) -> list:
         """
         This function passes in a list of 'observations' as pixels [row, col] and a current CameraData instance 
         associated with them. It attempts to associate the new observations with tracks. For those observations that an 
         association is not made, new object instances will begin.
             observations: list of [row, col]  lists representing objects
             curCameraData: CameraData instance associated with observations
-        """
-        # for output
-        results = []
-        
-        # grab size of current __trackDataArray
-        curTrks = self.__trackDataArray['trackID'].count()
+        """        
+        # grab size of current __currentTrackDataFrame
+        numCurrentTracks = self.__currentTrackDataFrame[TargetTracker.TRACK_ID_STRING].count()
         
         # Get track ID's. NOTE: This is a list. trackIDs
-        trackIDs = np.array(self.__trackDataArray[self.__trackDataArray['trackID'].notnull()]['trackID']).tolist()
+        trackIDs = self.__getCurrentTrackIDs()
         
         # NOTE: This will be used to remove unused tracks at the end. As tracks are used they will be
-        # removed from this list, and the remaining list will be removed from self.__trackDataArray
+        # removed from this list, and the remaining list will be removed from self.__currentTrackDataFrame
         trackIDsUnused = trackIDs.copy()
         
-        # make a prediction for each current track, NOTE: the loop doesn't execute if curTrks = 0
+        # make a prediction for each current track, NOTE: the loop doesn't execute if numCurrentTracks = 0
         predictions = []
-        for idx in np.arange(curTrks):
+        for idx in np.arange(numCurrentTracks):
             
-            trkObject = self.__trackDataArray['ObjectLocation_instance'][idx]
+            trkObject = self.__currentTrackDataFrame[TargetTracker.OBJECT_DATA_STRING][idx]
             trkCameraData = trkObject.getRecentCameraData()
             trkPixel = trkObject.getRecentPixel()
             
@@ -85,7 +89,7 @@ class TargetTracker:
         indices = TargetTracker.assignmentAlgorithm.compute(costMatrix)
         
         # loop over indexes, if an index matches a track than add to that tracks ObjectLocation instance,
-        # if an index is out of the track columns of the cost matrix than instantiate a new track and a 
+        # if an index is out of the track COLUMNS of the cost matrix than instantiate a new track and a 
         # new object. Finally, eliminate old tracks and add their ObjectLocation instances
         # to the list for output. ALSO can output result from each track as it is updated, output all tracks here!!
         # YOU ARE HERE
@@ -96,36 +100,64 @@ class TargetTracker:
             
             if (predIdx) < len(trackIDs):
                 # match trackID to observation, update ObjectLocation object with camera data and pixel
-                trackID = self.__trackDataArray['trackID'][predIdx]
-                trackIDidx = int(np.where(self.__trackDataArray['trackID'] == trackID)[0])
+                trackID = self.__currentTrackDataFrame[TargetTracker.TRACK_ID_STRING][predIdx]
+                trackIDidx = int(np.where(self.__currentTrackDataFrame[TargetTracker.TRACK_ID_STRING] == trackID)[0])
                 
                 # TODO: PASS BY REFERENCE
-                self.__trackDataArray['ObjectLocation_instance'][trackIDidx].addNewObservation(
+                self.__currentTrackDataFrame[TargetTracker.OBJECT_DATA_STRING][trackIDidx].addNewObservation(
                         cameraData = curCameraData, pixel = observations[obsIdx])
                 
                 # remove used track from unused list
                 trackIDsUnused.remove(trackID)
                 
                 # add object ID and location and error updates to the list of results for end of generateTracks call
-                curResults = self.__trackDataArray['ObjectLocation_instance'][trackIDidx].getResults()
-                results.append(curResults)
+                curResults = self.__currentTrackDataFrame[TargetTracker.OBJECT_DATA_STRING][trackIDidx].getResults()
+                #results.append(curResults)
                 
             else:
-                # instantiate new Object, let object create track ID, once it instantiates a new ObjectLocation object
-                newObj = ObjectLocation(origCameraData = curCameraData, origPixel = observations[obsIdx])
-                newID = newObj.objID
-                
-                # TODO: PASS BY REFERENCE
-                self.__trackDataArray['trackID'] = newID
-                self.__trackDataArray['ObjectLocation_instance'][curTrks  + idx] = newObj
+                self.__beginNewTrack(currentCameraData = curCameraData, obsPixel = observations[obsIdx])
                 
         # remove tracks that were NOT updated from the track list
         for dropID in trackIDsUnused:
-            dropIDidx = int(np.where(self.__trackDataArray['trackID'] == dropID)[0])
-            self.__trackDataArray = self.__trackDataArray.drop(dropIDidx)
+            dropIDidx = int(np.where(self.__currentTrackDataFrame[TargetTracker.TRACK_ID_STRING] == dropID)[0])
+            self.__currentTrackDataFrame = self.__currentTrackDataFrame.drop(dropIDidx)
             
         return results
 
+
+    ####################################################################################################################
+    def __beginNewTrack(self, currentCameraData: CameraData, obsPixel: list) -> None:
+        """
+        Method to instantiate a new ObjectLocation object and add it to the current track list
+        """
+        # lets the object ID increment from the ObjectLocation incrementer
+        newObj = ObjectLocation(origCameraData = currentCameraData, origPixel = obsPixel)
+                
+        self.__currentTrackDataFrame[TargetTracker.TRACK_ID_STRING] = newObj.objID
+        self.__currentTrackDataFrame[TargetTracker.OBJECT_DATA_STRING][numCurrentTracks  + idx] = newObj
+        
+        return
+    
+    ####################################################################################################################
+    def __appendToTrack(self, trackID: int) -> None:
+        pass
+    
+    ####################################################################################################################
+    def __moveTrackFromCurrentToFinal(self, trackID: int) -> None:
+        pass
+    
+    ####################################################################################################################
+    def getLocatedObjects(self) -> df:
+        pass
+    
+    ####################################################################################################################
+    def __getCurrentTrackIDs(self) -> list:
+        """
+        Method to return current track ID's 
+        """
+        bools = self.__currentTrackDataFrame.apply(lambda x: True if x[TargetTracker.TRACK_ID_STRING] is not np.nan else False , axis=1)
+        return bools.index.tolist()
+    
     ####################################################################################################################         
     def buildCostMatrix(self, observations: list, predictions: list, printMatrix: bool = False) -> np.array:
         """

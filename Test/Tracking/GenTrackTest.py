@@ -51,17 +51,17 @@ ECEF0 = CT.LLE_to_ECEF(LatLonEl0)
 
 # first frame ob observations
 camData0 = CameraData(LatLonEl0, heading0, pitch0)
-trackResults0 = trackerObj.generateTracks(observations = obs0, curCameraData = camData0)
+trackResults0 = trackerObj.addFrameObservations(observations = obs0, curCameraData = camData0)
 
 # second frame of observations 
 ECEF1 = [ECEF0[0] + metersTraveled[0], ECEF0[1] + metersTraveled[1], ECEF0[2] + metersTraveled[2]]
 LatLonEl1 = CT.ECEF_to_LLE(ECEF1)
 camData1 = CameraData(LatLonEl1, heading1, pitch1)
-trackResults1 = trackerObj.generateTracks(observations = obs1, curCameraData = camData1)
+trackResults1 = trackerObj.addFrameObservations(observations = obs1, curCameraData = camData1)
 
 # third frame of observations
 ECEF2 = [ECEF1[0] + metersTraveled[0], ECEF1[1] + metersTraveled[1], ECEF1[2] + metersTraveled[2]]
 LatLonEl2 = CT.ECEF_to_LLE(ECEF2)
 camData2 = CameraData(LatLonEl2, heading2, pitch2)
-trackResults2 = trackerObj.generateTracks(observations = obs2, curCameraData = camData2)
+trackResults2 = trackerObj.addFrameObservations(observations = obs2, curCameraData = camData2)
 
