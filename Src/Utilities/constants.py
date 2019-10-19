@@ -17,3 +17,4 @@ class Constants:
     SENSOR_SIZE = [1024, 1024] # TODO Change
     RAD2DEG = 180/np.pi
     DEG2RAD = np.pi/180
+
