@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys, os
-import numpy as np
+#import numpy as np
 
 sys.path.append(os.path.join(sys.path[0],'..','..','Src','Tracking'))
 sys.path.append(os.path.join(sys.path[0],'..','..','Src','Utilities'))
 
-from TargetTracker import TargetTracker
+from track import TargetTracker
 from lat_gis import CameraData, ObjectLocation
 from coord_transfers import CoordTransfers
 from constants import Constants
@@ -51,17 +51,22 @@ ECEF0 = CT.LLE_to_ECEF(LatLonEl0)
 
 # first frame ob observations
 camData0 = CameraData(LatLonEl0, heading0, pitch0)
-trackResults0 = trackerObj.addFrameObservations(observations = obs0, curCameraData = camData0)
+trackerObj.addFrameObservations(observations = obs0, curCameraData = camData0)
 
 # second frame of observations 
 ECEF1 = [ECEF0[0] + metersTraveled[0], ECEF0[1] + metersTraveled[1], ECEF0[2] + metersTraveled[2]]
 LatLonEl1 = CT.ECEF_to_LLE(ECEF1)
 camData1 = CameraData(LatLonEl1, heading1, pitch1)
-trackResults1 = trackerObj.addFrameObservations(observations = obs1, curCameraData = camData1)
+trackerObj.addFrameObservations(observations = obs1, curCameraData = camData1)
 
 # third frame of observations
 ECEF2 = [ECEF1[0] + metersTraveled[0], ECEF1[1] + metersTraveled[1], ECEF1[2] + metersTraveled[2]]
 LatLonEl2 = CT.ECEF_to_LLE(ECEF2)
 camData2 = CameraData(LatLonEl2, heading2, pitch2)
-trackResults2 = trackerObj.addFrameObservations(observations = obs2, curCameraData = camData2)
+trackerObj.addFrameObservations(observations = obs2, curCameraData = camData2)
 
+print('CURRENT TRACKS')
+trackerObj.printCurrentTrackResults()
+
+print('FINAL TRACKS')
+trackerObj.printFinalTrackResults()

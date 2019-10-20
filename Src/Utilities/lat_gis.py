@@ -98,7 +98,14 @@ class ObjectLocation:
         
         # get ECEF vector of object location (NOTE: Object can be anywhere on this vector)
         ObjectLocation.ENU_2_ECEF(self)
-        
+       
+    ####################################################################################################################
+    def getObjectID(self) -> int:
+        """
+        A method to return the object ID.
+        """
+        return self.objID
+    
     ####################################################################################################################
     """
     Method for adding new observation to object
