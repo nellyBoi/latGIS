@@ -8,7 +8,7 @@ TargetTrackerTest.py
 from latgis.track import TrackData as td
 from latgis.location import CameraData, ObjectLocation
 
-from util.coord_transfers import CoordTransfers
+from latgis.util.coord_transfers import CoordTransfers
 CT = CoordTransfers()
 
 metersTraveled = [0, 10, 0]

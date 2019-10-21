@@ -9,7 +9,7 @@ from pandas import DataFrame
 
 from latgis.location import ObjectLocation, CameraData
 from latgis.position_predict import ObjectLocationModel
-from util.munkres import Munkres
+from latgis.util import munkres
 
 
 ########################################################################################################################
@@ -136,7 +136,7 @@ class TargetTracker:
     SMALL_VAL = 1 / LARGE_VAL
 
     # instantiate the assignment algorithm
-    assignmentAlgorithm = Munkres()
+    assignmentAlgorithm = munkres.Munkres()
 
     ####################################################################################################################
     def __init__(self, gateSize: int, distToDVec: float):

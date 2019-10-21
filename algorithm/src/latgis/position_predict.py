@@ -59,10 +59,10 @@ TODO:
 import numpy as np
 
 from latgis.location import CameraData
-from util.constants import Constants
-from util.coord_transfers import CoordTransfers
-from util.enu_to_ecef import enu2ecef
-from util.rotation import Rotate
+from latgis.util.constants import Constants
+from latgis.util.coord_transfers import CoordTransfers
+from latgis.util import enu_to_ecef
+from latgis.util import rotation
 
 
 ########################################################################################################################
@@ -217,7 +217,7 @@ class ObjectLocationModel:
         p1y = frame_t1_ecef[1] + 1000 * Normal[1]
         p1z = frame_t1_ecef[2] + 1000 * Normal[2]
         # TODO: There is an error here with certain rotations
-        LOS_noPitch = Rotate(North, frame_t1_ecef, [p1x, p1y, p1z], heading)
+        LOS_noPitch = rotation.Rotate(North, frame_t1_ecef, [p1x, p1y, p1z], heading)
         LOS_noPitch = LOS_noPitch / np.linalg.norm(LOS_noPitch)
 
         # calculation direction vector in ECEF
@@ -295,9 +295,9 @@ class ObjectLocationModel:
     def getNorthECEF(self, LatLonEl: list) -> np.ndarray:
 
         # create p0, origin of ENU in ECEF
-        p0x, p0y, p0z = enu2ecef(0, 0, 0, LatLonEl[0], LatLonEl[1], LatLonEl[2])
+        p0x, p0y, p0z = enu_to_ecef.enu2ecef(0, 0, 0, LatLonEl[0], LatLonEl[1], LatLonEl[2])
         # create p1, point on North axis of ENU in ECEF
-        p1x, p1y, p1z = enu2ecef(0, 1000, 0, LatLonEl[0], LatLonEl[1], LatLonEl[2])
+        p1x, p1y, p1z = enu_to_ecef.enu2ecef(0, 1000, 0, LatLonEl[0], LatLonEl[1], LatLonEl[2])
 
         northECEF = np.array([(p1x - p0x), (p1y - p0y), (p1z - p0z)])
         # normalize

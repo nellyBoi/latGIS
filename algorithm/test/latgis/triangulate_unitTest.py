@@ -22,7 +22,7 @@ All outputs are hand-checked. A vaerification source should be used at a
 later point. 
 
 """
-from util.triangulate import minDistPoint_3D
+from latgis.util.triangulate import minDistPoint_3D
 from numpy import array
 
 # parallel lines

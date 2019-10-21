@@ -12,10 +12,10 @@ from typing import Tuple
 import numpy as np
 from pandas import DataFrame
 
-from util.constants import Constants
-from util.coord_transfers import CoordTransfers
-from util.enu_to_ecef import enu2ecef
-from util.triangulate import minDistPoint_3D
+from latgis.util.constants import Constants
+from latgis.util.coord_transfers import CoordTransfers
+from latgis.util import enu_to_ecef
+from latgis.util.triangulate import minDistPoint_3D
 
 
 ########################################################################################################################
@@ -318,11 +318,11 @@ class ObjectLocation:
 
         # To create the ECEF vector there has to be two points in ECEF. The first one will
         # be at the ENU origin, the second one will be on the ENU vector. 
-        xECEF1, yECEF1, zECEF1 = enu2ecef(0, 0, 0, LLE[0], LLE[1], LLE[2], deg=True)
+        xECEF1, yECEF1, zECEF1 = enu_to_ecef.enu2ecef(0, 0, 0, LLE[0], LLE[1], LLE[2], deg=True)
         ptEcef = np.array((xECEF1, yECEF1, zECEF1))
 
         LARGE_NUMBER = 100000000
-        xECEF2, yECEF2, zECEF2 = enu2ecef(LARGE_NUMBER * enuVec[0], LARGE_NUMBER * enuVec[1], LARGE_NUMBER * enuVec[2],
+        xECEF2, yECEF2, zECEF2 = enu_to_ecef.enu2ecef(LARGE_NUMBER * enuVec[0], LARGE_NUMBER * enuVec[1], LARGE_NUMBER * enuVec[2],
                                           LLE[0], LLE[1], LLE[2], deg=True)
 
         xECEF = xECEF2 - xECEF1

@@ -1,13 +1,13 @@
-import setuptools
+from setuptools import setup
 
-setuptools.setup(
+setup(
     name='latGIS',
     version='',
-    packages=['util', 'latgis'],
+    packages=['latgis', 'latgis.util'],
     package_dir={'': 'algorithm/src'},
     url='',
     license='',
-    author='Nelson Kane',
+    author='Nelly Kane',
     author_email='john.n.kane@colorado.edu',
-    description='A tool for computing geodetic coordinates of objects from image data and telemetry.'
+    description="Methods to compute geodetic coordinates from image data and telemetry."
 )

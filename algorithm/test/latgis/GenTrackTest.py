@@ -6,8 +6,8 @@ import sys, os
 from latgis import track
 from latgis.location import CameraData
 from latgis.location import ObjectLocation
-from util.coord_transfers import CoordTransfers
-from util.constants import Constants
+from latgis.util.coord_transfers import CoordTransfers
+from latgis.util.constants import Constants
 CT = CoordTransfers()
 
 # test pass function

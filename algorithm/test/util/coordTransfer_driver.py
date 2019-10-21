@@ -8,7 +8,7 @@ Test driver for running the coord_transfers class. This also serves as a unit te
 
 """
 
-from util.coord_transfers import CoordTransfers
+from latgis.util.coord_transfers import CoordTransfers
 
 # instantiation of the class
 d = CoordTransfers()

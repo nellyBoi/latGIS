@@ -14,7 +14,7 @@ import numpy as np
 import unittest
 import matplotlib.pyplot as plt
 
-from util.coord_transfers import CoordTransfers
+from latgis.util.coord_transfers import CoordTransfers
 from latgis.position_predict import ObjectLocationModel
 from latgis.location import CameraData
 
