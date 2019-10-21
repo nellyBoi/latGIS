@@ -11,10 +11,10 @@ TODO: Change to python config file
 '''
 import numpy as np
 
+
 # camera/sensor parameters
 class Constants:
-    FOV = 30 # degrees
-    SENSOR_SIZE = [1024, 1024] # TODO Change
-    RAD2DEG = 180/np.pi
-    DEG2RAD = np.pi/180
-
+    FOV = 30  # degrees
+    SENSOR_SIZE = [1024, 1024]  # TODO Change
+    RAD2DEG = 180 / np.pi
+    DEG2RAD = np.pi / 180

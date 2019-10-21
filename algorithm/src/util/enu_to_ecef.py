@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from typing import Tuple
+
 import numpy as np
 
+
 def geodetic2ecef(lat: float, lon: float, alt: float,
-                   deg: bool = True) -> Tuple[float, float, float]:
+                  deg: bool = True) -> Tuple[float, float, float]:
     """
     Point
 
@@ -19,8 +21,8 @@ def geodetic2ecef(lat: float, lon: float, alt: float,
     fParam = 1 / 298.2572235630  # flattening
     bParam = aParam * (1 - fParam)  # semi-minor axis
     if deg:
-        lat = lat*np.pi/180
-        lon = lon*np.pi/180
+        lat = lat * np.pi / 180
+        lon = lon * np.pi / 180
 
     with np.errstate(invalid='ignore'):
         # need np.any() to handle scalar and array cases
@@ -38,25 +40,27 @@ def geodetic2ecef(lat: float, lon: float, alt: float,
     # coordinates.
     x = (N + alt) * np.cos(lat) * np.cos(lon)
     y = (N + alt) * np.cos(lat) * np.sin(lon)
-    z = (N * (bParam / aParam)**2 + alt) * np.sin(lat)
+    z = (N * (bParam / aParam) ** 2 + alt) * np.sin(lat)
 
     return x, y, z
 
+
 def get_radius_normal(lat_radians: float) -> float:
     """ Compute normal radius of planetary body"""
-    
+
     aParam = 6378137.  # semi-major axis [m]
     fParam = 1 / 298.2572235630  # flattening
     bParam = aParam * (1 - fParam)  # semi-minor axis
 
-    return aParam**2 / np.sqrt(aParam**2 * np.cos(lat_radians)**2 + 
-                               bParam**2 * np.sin(lat_radians)**2)
+    return aParam ** 2 / np.sqrt(aParam ** 2 * np.cos(lat_radians) ** 2 +
+                                 bParam ** 2 * np.sin(lat_radians) ** 2)
+
 
 def enu2uvw(east: float, north: float, up: float,
             lat0: float, lon0: float, deg: bool = True) -> Tuple[float, float, float]:
     if deg:
-        lat0 = lat0*np.pi/180
-        lon0 = lon0*np.pi/180
+        lat0 = lat0 * np.pi / 180
+        lon0 = lon0 * np.pi / 180
 
     t = np.cos(lat0) * up - np.sin(lat0) * north
     w = np.sin(lat0) * up + np.cos(lat0) * north

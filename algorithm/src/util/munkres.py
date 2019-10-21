@@ -296,31 +296,35 @@ __docformat__ = 'restructuredtext'
 # Imports
 # ---------------------------------------------------------------------------
 
-import sys
 import copy
+import sys
 
 # ---------------------------------------------------------------------------
 # Exports
 # ---------------------------------------------------------------------------
 
-__all__     = ['Munkres', 'make_cost_matrix', 'DISALLOWED']
+__all__ = ['Munkres', 'make_cost_matrix', 'DISALLOWED']
 
 # ---------------------------------------------------------------------------
 # Globals
 # ---------------------------------------------------------------------------
 
 # Info about the module
-__version__   = "1.0.12"
-__author__    = "Brian Clapper, bmc@clapper.org"
-__url__       = "http://software.clapper.org/munkres/"
+__version__ = "1.0.12"
+__author__ = "Brian Clapper, bmc@clapper.org"
+__url__ = "http://software.clapper.org/munkres/"
 __copyright__ = "(c) 2008-2017 Brian M. Clapper"
-__license__   = "Apache Software License"
+__license__ = "Apache Software License"
+
 
 # Constants
 class DISALLOWED_OBJ(object):
     pass
+
+
 DISALLOWED = DISALLOWED_OBJ()
 DISALLOWED_PRINTVAL = "D"
+
 
 # ---------------------------------------------------------------------------
 # Exceptions
@@ -331,6 +335,7 @@ class UnsolvableMatrix(Exception):
     Exception raised for unsolvable matrices
     """
     pass
+
 
 # ---------------------------------------------------------------------------
 # Classes
@@ -435,12 +440,12 @@ class Munkres:
         done = False
         step = 1
 
-        steps = { 1 : self.__step1,
-                  2 : self.__step2,
-                  3 : self.__step3,
-                  4 : self.__step4,
-                  5 : self.__step5,
-                  6 : self.__step6 }
+        steps = {1: self.__step1,
+                 2: self.__step2,
+                 3: self.__step3,
+                 4: self.__step4,
+                 5: self.__step5,
+                 6: self.__step6}
 
         while not done:
             try:
@@ -527,7 +532,7 @@ class Munkres:
                     count += 1
 
         if count >= n:
-            step = 7 # done
+            step = 7  # done
         else:
             step = 4
 
@@ -587,14 +592,14 @@ class Munkres:
             if row >= 0:
                 count += 1
                 path[count][0] = row
-                path[count][1] = path[count-1][1]
+                path[count][1] = path[count - 1][1]
             else:
                 done = True
 
             if not done:
                 col = self.__find_prime_in_row(path[count][0])
                 count += 1
-                path[count][0] = path[count-1][0]
+                path[count][0] = path[count - 1][0]
                 path[count][1] = col
 
         self.__convert_path(path, count)
@@ -610,7 +615,7 @@ class Munkres:
         lines.
         """
         minval = self.__find_smallest()
-        events = 0 # track actual changes to matrix
+        events = 0  # track actual changes to matrix
         for i in range(self.n):
             for j in range(self.n):
                 if self.C[i][j] is DISALLOWED:
@@ -622,7 +627,7 @@ class Munkres:
                     self.C[i][j] -= minval
                     events += 1
                 if self.row_covered[i] and not self.col_covered[j]:
-                    events -= 2 # change reversed, no real difference
+                    events -= 2  # change reversed, no real difference
         if (events == 0):
             raise UnsolvableMatrix("Matrix cannot be solved!")
         return 4
@@ -636,7 +641,6 @@ class Munkres:
                     if self.C[i][j] is not DISALLOWED and minval > self.C[i][j]:
                         minval = self.C[i][j]
         return minval
-
 
     def __find_a_zero(self, i0=0, j0=0):
         """Find the first uncovered element with value 0"""
@@ -704,7 +708,7 @@ class Munkres:
         return col
 
     def __convert_path(self, path, count):
-        for i in range(count+1):
+        for i in range(count + 1):
             if self.marked[path[i][0]][path[i][1]] == 1:
                 self.marked[path[i][0]][path[i][1]] = 0
             else:
@@ -722,6 +726,7 @@ class Munkres:
             for j in range(self.n):
                 if self.marked[i][j] == 2:
                     self.marked[i][j] = 0
+
 
 # ---------------------------------------------------------------------------
 # Functions
@@ -760,13 +765,14 @@ def make_cost_matrix(profit_matrix, inversion_function=None):
     :return: The converted matrix
     """
     if not inversion_function:
-      maximum = max(max(row) for row in profit_matrix)
-      inversion_function = lambda x: maximum - x
+        maximum = max(max(row) for row in profit_matrix)
+        inversion_function = lambda x: maximum - x
 
     cost_matrix = []
     for row in profit_matrix:
         cost_matrix.append([inversion_function(value) for value in row])
     return cost_matrix
+
 
 def print_matrix(matrix, msg=None):
     """
@@ -779,7 +785,6 @@ def print_matrix(matrix, msg=None):
         msg : str
             Optional message to print before displaying the matrix
     """
-    import math
 
     if msg is not None:
         print(msg)
@@ -801,10 +806,12 @@ def print_matrix(matrix, msg=None):
         for val in row:
             if val is DISALLOWED:
                 formatted = ((format + 's') % DISALLOWED_PRINTVAL)
-            else: formatted = ((format + 'd') % val)
+            else:
+                formatted = ((format + 'd') % val)
             sys.stdout.write(sep + formatted)
             sep = ', '
         sys.stdout.write(']\n')
+
 
 # ---------------------------------------------------------------------------
 # Main
@@ -825,24 +832,23 @@ if __name__ == '__main__':
           [300, 225, 300, 3]],
          452),  # expected cost
 
-
         # Square
-        ([[10, 10,  8],
-          [9,  8,  1],
-          [9,  7,  4]],
+        ([[10, 10, 8],
+          [9, 8, 1],
+          [9, 7, 4]],
          18),
 
         # Rectangular variant
-        ([[10, 10,  8, 11],
-          [9,  8,  1, 1],
-          [9,  7,  4, 10]],
+        ([[10, 10, 8, 11],
+          [9, 8, 1, 1],
+          [9, 7, 4, 10]],
          15),
 
         # Rectangular with DISALLOWED
         ([[4, 5, 6, DISALLOWED],
           [1, 9, 12, 11],
           [DISALLOWED, 5, 4, DISALLOWED],
-          [12, 12, 12, 10]],20),
+          [12, 12, 12, 10]], 20),
 
         # DISALLOWED to force pairings
         ([[1, DISALLOWED, DISALLOWED, DISALLOWED],

@@ -7,9 +7,9 @@ TargetTracker.py
 import numpy as np
 from pandas import DataFrame
 
-from util.munkres import Munkres
 from latgis.location import ObjectLocation, CameraData
 from latgis.position_predict import ObjectLocationModel
+from util.munkres import Munkres
 
 
 ########################################################################################################################
