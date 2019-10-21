@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 import sys, os
-#import numpy as np
+#sys.path.append(os.path.join(sys.path[0], '..', '..', 'Src', 'Tracking'))
+#sys.path.append(os.path.join(sys.path[0], '..', '..', 'Src', 'Utilities'))
 
-sys.path.append(os.path.join(sys.path[0],'..','..','Src','Tracking'))
-sys.path.append(os.path.join(sys.path[0],'..','..','Src','Utilities'))
-
-from track import TargetTracker
-from lat_gis import CameraData, ObjectLocation
-from coord_transfers import CoordTransfers
-from constants import Constants
+from latgis import track
+from latgis.location import CameraData
+from latgis.location import ObjectLocation
+from util.coord_transfers import CoordTransfers
+from util.constants import Constants
 CT = CoordTransfers()
 
 # test pass function
@@ -23,7 +22,7 @@ def test(name: str, passed: bool):
 HALF_ROW = Constants.SENSOR_SIZE[0] / 2
 HALF_COL = Constants.SENSOR_SIZE[1] / 2
 
-trackerObj = TargetTracker(gateSize = 5, distToDVec = 5)
+trackerObj = track.TargetTracker(gateSize = 5, distToDVec = 5)
 
 LatLonEl0 = [0, 0, 10]
 metersTraveled = [0, 10, 0]
@@ -51,22 +50,22 @@ ECEF0 = CT.LLE_to_ECEF(LatLonEl0)
 
 # first frame ob observations
 camData0 = CameraData(LatLonEl0, heading0, pitch0)
-trackerObj.addFrameObservations(observations = obs0, curCameraData = camData0)
+trackerObj.add_frame_observations(observations = obs0, curCameraData = camData0)
 
 # second frame of observations 
 ECEF1 = [ECEF0[0] + metersTraveled[0], ECEF0[1] + metersTraveled[1], ECEF0[2] + metersTraveled[2]]
 LatLonEl1 = CT.ECEF_to_LLE(ECEF1)
 camData1 = CameraData(LatLonEl1, heading1, pitch1)
-trackerObj.addFrameObservations(observations = obs1, curCameraData = camData1)
+trackerObj.add_frame_observations(observations = obs1, curCameraData = camData1)
 
 # third frame of observations
 ECEF2 = [ECEF1[0] + metersTraveled[0], ECEF1[1] + metersTraveled[1], ECEF1[2] + metersTraveled[2]]
 LatLonEl2 = CT.ECEF_to_LLE(ECEF2)
 camData2 = CameraData(LatLonEl2, heading2, pitch2)
-trackerObj.addFrameObservations(observations = obs2, curCameraData = camData2)
+trackerObj.add_frame_observations(observations = obs2, curCameraData = camData2)
 
 print('CURRENT TRACKS')
-trackerObj.printCurrentTrackResults()
+trackerObj.print_current_track_results()
 
 print('FINAL TRACKS')
-trackerObj.printFinalTrackResults()
+trackerObj.print_final_track_results()

@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
 import sys, os
-from TargetTracker import TargetTracker
+from latgis.track import TargetTracker
 import numpy as np
 
 sys.path.append(os.path.join(sys.path[0],'..','..','Src','Tracking'))
@@ -36,5 +34,5 @@ test('Zero Overlap', (overlapPred == 0 ))
 # cost matrix stuff
 obs = [[90, 5], [50, 92], [50, 50], [5, 90]]
 trks = [[5, 5], [50, 50], [50, 90]]
-costMat = trackerObj.buildCostMatrix(observations = obs, predictions = trks, printMatrix = True)
+costMat = trackerObj.build_cost_matrix(observations = obs, predictions = trks, printMatrix = True)
 

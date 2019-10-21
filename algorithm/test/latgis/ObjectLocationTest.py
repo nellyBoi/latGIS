@@ -6,8 +6,8 @@ sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Tracking'))
 sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Utilities'))
 
 
-from lat_gis import CameraData, ObjectLocation
-from coord_transfers import CoordTransfers
+from latgis.location import CameraData, ObjectLocation
+from util.coord_transfers import CoordTransfers
 CT = CoordTransfers()
 
 # We will use the tranformations we wrote for the algorithm to make a realistic scenario

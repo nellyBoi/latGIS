@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys, os
 sys.path.append(os.path.join(sys.path[0],'..','..','Src','Utilities'))
-from enu_to_ecef import enu2ecef
+from util.enu_to_ecef import enu2ecef
 
 '''
 enu2ecef(e1: float, n1: float, u1: float,

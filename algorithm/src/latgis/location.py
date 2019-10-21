@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-'''
+"""
 Author: Nelly Kane
 Originated: 12.03.2018
 
@@ -8,18 +6,15 @@ Repo: latGIS
 File: lat_gis.py
 
 The defined containers for the latGIS Python architecture.
-
-'''
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..','Triangulation'))
-
-from pandas import DataFrame as df
+"""
+from pandas import DataFrame
 import numpy as np
 from typing import Tuple
-from constants import Constants
-from triangulate import minDistPoint_3D
-from enu_to_ecef import enu2ecef
-from coord_transfers import CoordTransfers
+from util.constants import Constants
+from util.triangulate import minDistPoint_3D
+from util.enu_to_ecef import enu2ecef
+from util.coord_transfers import CoordTransfers
+
 
 ########################################################################################################################
 class CameraData:
@@ -83,7 +78,7 @@ class ObjectLocation:
         # start Pandas.DataFrame
         columns = ['objID', 'cameraData', 'pixel', 'ecefPt','enuVec', 'ecefVec', 'objectLocationECEF',
                 'objectLocationLLE', 'triangulationError']
-        self.__objectDataArray = df(columns = columns, index = 
+        self.__objectDataArray = DataFrame(columns = columns, index =
             np.linspace(0, ObjectLocation.maxObsPerObj - 1, ObjectLocation.maxObsPerObj))
         
         self.__objectDataArray['objID'][0] = self.objID

@@ -5,15 +5,10 @@ Nelly Kane
 
 TargetTrackerTest.py
 """
-import sys, os
+from latgis.track import TrackData as td
+from latgis.location import CameraData, ObjectLocation
 
-sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Tracking'))
-sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Utilities'))
-
-from track import TrackData as td
-from lat_gis import CameraData, ObjectLocation
-
-from coord_transfers import CoordTransfers
+from util.coord_transfers import CoordTransfers
 CT = CoordTransfers()
 
 metersTraveled = [0, 10, 0]
@@ -45,46 +40,46 @@ pixel1 = [512, 490]
 ##################################################################
 
 tdObj1 = td(name = 'Test object')
-tdObj1.printData()
+tdObj1.print_data()
 
 print('No IDs')
-noIds = tdObj1.getIDs() # shouldn't be any IDs yet
+noIds = tdObj1.get_ids() # shouldn't be any IDs yet
 print(noIds)
 
 # testing add to track
 objObj0 = ObjectLocation(origCameraData = camData, origPixel = pixel0)
-tdObj1.addTrack(objectLocation = objObj0)
+tdObj1.add_track(objectLocation = objObj0)
 print('One ID')
-oneId = tdObj1.getIDs()
+oneId = tdObj1.get_ids()
 print(oneId)
 
 # adding another track
 camData1 = CameraData(LatLonEl = LatLonEl1, heading = heading1, pitch = pitch1)
 objObj1 = ObjectLocation(origCameraData = camData1, origPixel = pixel1)
-tdObj1.addTrack(objectLocation = objObj1)
+tdObj1.add_track(objectLocation = objObj1)
 print('Two IDs')
-twoId = tdObj1.getIDs()
+twoId = tdObj1.get_ids()
 print(twoId)
 
 # print data
-tdObj1.printData()
+tdObj1.print_data()
 
 # append to data with the first ID
-tdObj1.appendToDataByID(objObj1.getObjectID(), cameraData = camDataForAppend, pixel = pixelForAppend)
+tdObj1.append_to_data_by_id(objObj1.getObjectID(), cameraData = camDataForAppend, pixel = pixelForAppend)
 
 # print data again with append
-tdObj1.printData()
+tdObj1.print_data()
 
 # removing a track
-objObj2 = tdObj1.removeByID(objObj0.getObjectID())
+objObj2 = tdObj1.remove_by_id(objObj0.getObjectID())
 print('One ID again')
-twoId = tdObj1.getIDs()
+twoId = tdObj1.get_ids()
 print(twoId)
 
 # print data
-tdObj1.printData()
+tdObj1.print_data()
 
 # pass data back from ID
-obj = tdObj1.getDataByID(objObj1.getObjectID())
+obj = tdObj1.get_data_by_id(objObj1.getObjectID())
 print(' /////////// DATA PASSED BACK //////////////////')
 obj.printResults()

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Sat May 19 01:48:38 2018
 
@@ -8,10 +7,8 @@ Created on Sat May 19 01:48:38 2018
 Test driver for running the coord_transfers class. This also serves as a unit test.
 
 """
-import sys, os
-sys.path.append(os.path.join(sys.path[0],'..','..','Src','Utilities'))
 
-from coord_transfers import CoordTransfers
+from util.coord_transfers import CoordTransfers
 
 # instantiation of the class
 d = CoordTransfers()

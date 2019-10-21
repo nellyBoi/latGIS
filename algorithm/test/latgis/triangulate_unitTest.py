@@ -22,10 +22,7 @@ All outputs are hand-checked. A vaerification source should be used at a
 later point. 
 
 """
-import sys, os
-sys.path.append(os.path.join(sys.path[0],'..','..','Src','Triangulation'))
-
-from triangulate import minDistPoint_3D
+from util.triangulate import minDistPoint_3D
 from numpy import array
 
 # parallel lines

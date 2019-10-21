@@ -56,18 +56,19 @@ TODO:
     that is held within the class. This may frequently change and will need to
     be variable once this class is used for more general targets. 
 """
-import sys, os
-sys.path.append(os.path.join(os.path.realpath(__file__),'..','..','Src','Triangulation'))
-
 import numpy as np
-from enu_to_ecef import enu2ecef
-from rotation import Rotate
-from coord_transfers import CoordTransfers
-from lat_gis import CameraData   
-from constants import Constants     
+from util.enu_to_ecef import enu2ecef
+from util.rotation import Rotate
+from util.coord_transfers import CoordTransfers
+from latgis.location import CameraData
+from util.constants import Constants
 
-########################################################################################################################  
+
+########################################################################################################################
 class ObjectLocationModel:
+    """
+    TODO: fill this in.
+    """
     
     coordTransfers = CoordTransfers() 
     
