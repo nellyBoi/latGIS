@@ -1,9 +1,20 @@
 """
+Nelly Kane
+10.21.2019
 
+run_all_tests.py
+
+Unit test framework to run all tests associated with latgis. To run additional tests, file must be pre-pended with
+'test_' and contain tests in a unittest.TestCase derived object.
+
+TODO:
+    - finish unit tests
+    - pass data print boolean
 """
 import os
 import unittest
-import test_setup
+
+from test_setup import setup
 
 TEST_SUB_DIRS = ['.']#['util', 'latgis']
 ########################################################################################################################
@@ -11,7 +22,12 @@ class UnitTestLauncher(object):
     """
     A class to run all unittests within the test framework.
     """
+
+    ####################################################################################################################
     def run_tests(self):
+        """
+        run unit tests
+        """
 
         lsPaths = []
 
@@ -30,6 +46,6 @@ class UnitTestLauncher(object):
 
 ########################################################################################################################
 if __name__ == '__main__':
-    test_setup.setup()
+    setup()
     testRunner = UnitTestLauncher()
     testRunner.run_tests()

@@ -2,5 +2,6 @@
 Src/StreetViewAPI/ggapikeydoc.py
 *.pyc
 *RETIRED*
+RETIRED*
 venv/
 .idea/
