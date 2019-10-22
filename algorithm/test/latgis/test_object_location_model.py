@@ -4,7 +4,7 @@ Created on Sun Jun 24 20:06:30 2018
 
 @author: johnnelsonkane
 
-Object_Location_Model_unitTest.py
+test_object_location_model.py
 
 This unit test will check the 'Object_Location_Model' in which an objects 
 movement from image to image is predicted.

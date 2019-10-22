@@ -12,9 +12,9 @@ from typing import Tuple
 import numpy as np
 from pandas import DataFrame
 
+from latgis.util import enu_to_ecef
 from latgis.util.constants import Constants
 from latgis.util.coord_transfers import CoordTransfers
-from latgis.util import enu_to_ecef
 from latgis.util.triangulate import minDistPoint_3D
 
 
@@ -66,11 +66,10 @@ class ObjectLocation:
     coordTransfers = CoordTransfers()
 
     ####################################################################################################################
-    """
-    Construtor
-    """
-
     def __init__(self, origCameraData: CameraData, origPixel: list):
+        """
+        Construtor
+        """
 
         # calculate virtual focal length
         ObjectLocation.focalLength = ObjectLocation.calcVirtualFocalLength()
@@ -106,14 +105,12 @@ class ObjectLocation:
         return self.objID
 
     ####################################################################################################################
-    """
-    Method for adding new observation to object
-        cameraData: CameraData object
-        pixel: TODO
-    """
-
     def addNewObservation(self, cameraData: CameraData, pixel: list):
-
+        """
+        Method for adding new observation to object
+            cameraData: CameraData object
+            pixel: TODO
+        """
         # increment observation counter
         self.curObs += 1
 
@@ -285,8 +282,7 @@ class ObjectLocation:
 
         return
 
-        ####################################################################################################################
-
+    ####################################################################################################################
     def calcAngleOffsets(pixel: list) -> Tuple[float, float]:
         """
         TODO
@@ -305,8 +301,7 @@ class ObjectLocation:
 
         return rowAngle, colAngle
 
-        ####################################################################################################################
-
+    ####################################################################################################################
     def ENU_2_ECEF(self):
         """
         # This function will compute the ecef capture point and the ecef direction vector.
@@ -322,8 +317,9 @@ class ObjectLocation:
         ptEcef = np.array((xECEF1, yECEF1, zECEF1))
 
         LARGE_NUMBER = 100000000
-        xECEF2, yECEF2, zECEF2 = enu_to_ecef.enu2ecef(LARGE_NUMBER * enuVec[0], LARGE_NUMBER * enuVec[1], LARGE_NUMBER * enuVec[2],
-                                          LLE[0], LLE[1], LLE[2], deg=True)
+        xECEF2, yECEF2, zECEF2 = enu_to_ecef.enu2ecef(LARGE_NUMBER * enuVec[0], LARGE_NUMBER * enuVec[1],
+                                                      LARGE_NUMBER * enuVec[2],
+                                                      LLE[0], LLE[1], LLE[2], deg=True)
 
         xECEF = xECEF2 - xECEF1
         yECEF = yECEF2 - yECEF1
@@ -392,7 +388,7 @@ class ObjectLocation:
         """
         objectLocationECEF = self.__objectDataArray['objectLocationECEF'][self.curObs]
 
-        if (not np.isnan(objectLocationECEF).any()):
+        if not np.isnan(objectLocationECEF).any():
             LLE = ObjectLocation.coordTransfers.ECEF_to_LLE(
                 [objectLocationECEF[0], objectLocationECEF[1], objectLocationECEF[2]])
         else:
