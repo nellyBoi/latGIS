@@ -1,6 +1,7 @@
 from latgis.util import enu_to_ecef
 import unittest
 
+
 '''
 enu2ecef(e1: float, n1: float, u1: float,
              lat0: float, lon0: float, h0: float,

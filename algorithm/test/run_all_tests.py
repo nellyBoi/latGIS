@@ -16,7 +16,9 @@ import unittest
 
 from test_setup import setup
 
-TEST_SUB_DIRS = ['.']#['util', 'latgis']
+PRINT_VERBOSE = True
+
+
 ########################################################################################################################
 class UnitTestLauncher(object):
     """
