@@ -1,0 +1,1 @@
+pyuic5 ipview_base.ui -o ../ipview_ui_base.py
