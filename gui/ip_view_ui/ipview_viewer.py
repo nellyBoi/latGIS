@@ -7,6 +7,7 @@ ipview_viewer.py
 File to open and run IPView.
 """
 import sys
+
 from ipview_ui import IPViewWindow
 
 
@@ -32,9 +33,7 @@ def my_exception_hook(exctype, value, traceback):
 
 ########################################################################################################################
 if __name__ == '__main__':
-
     sys._excepthook = sys.excepthook
     sys.excepthook = my_exception_hook
 
     viewer = launch()
-

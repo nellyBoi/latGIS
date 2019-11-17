@@ -6,7 +6,6 @@ A class to control the 'text_list_display' of IPView.
 """
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import (QStandardItem, QStandardItemModel, QFont)
-from PyQt5.QtCore import (QModelIndex, QPersistentModelIndex)
 
 import ipview_ui
 
@@ -21,9 +20,11 @@ class FileListDisplay(QtWidgets.QListView):
     # settings for text display of selected and unselected lines
     UNSELECTED_FONT = QFont("Helvetica", 12)
     UNSELECTED_FONT.setBold(False)
+    font = QFont()
     SELECTED_FONT = QFont("Helvetica", 14)
     SELECTED_FONT.setBold(True)
 
+    ####################################################################################################################
     def __init__(self,
                  ui: ipview_ui.IPViewWindow):
         """
@@ -62,7 +63,6 @@ class FileListDisplay(QtWidgets.QListView):
                 item = QStandardItem(f)
                 item.setFont(FileListDisplay.UNSELECTED_FONT)
                 self.q_item_list.append(item)
-
                 self.model.appendRow(item)  # display to scene
 
         return
@@ -113,7 +113,11 @@ class FileListDisplay(QtWidgets.QListView):
         """
         Method to auto-scroll the display box to keep the current item in view.
         """
-        index = self.model.indexFromItem(self.q_item_list[self.displayed_item_idx])
+        try:
+            index = self.model.indexFromItem(self.q_item_list[self.displayed_item_idx])
+        except IndexError:
+            return
+
         self.ui.text_list_display.scrollTo(index, QtWidgets.QAbstractItemView.EnsureVisible)
 
         return

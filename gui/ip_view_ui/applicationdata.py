@@ -1,8 +1,8 @@
 """
 
 """
-from image_containers import imagedirectory as im_dir
 from image_containers import image as im
+from image_containers import imagedirectory as im_dir
 
 BUFFER_SIZE = 3
 
@@ -51,7 +51,7 @@ class ApplicationData:
         # check for instantiation of data
         if self.__image_directory is None:
             return None
-        
+
         if self.__image_directory.has_previous():
             return self.__image_directory.previous_image()
         else:

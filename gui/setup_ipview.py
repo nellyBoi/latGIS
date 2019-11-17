@@ -1,15 +1,14 @@
 """
 Script to run prior to unit-testing to setup environment
 """
-import sys
 import os
+import sys
 
 PYTHON_PATH_ADDS = ['image_containers', 'ip_view_ui']
 
 
 ########################################################################################################################
 def setup() -> None:
-
     file_path = os.path.dirname(os.path.realpath(__file__))
 
     for folder in PYTHON_PATH_ADDS:

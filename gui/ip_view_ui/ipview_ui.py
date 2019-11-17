@@ -3,7 +3,6 @@ File to import auto-formatted *base.py file.
 """
 import sys
 
-from PyQt5 import QtGui
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 
@@ -16,7 +15,6 @@ class IPViewWindow(Ui_MainWindow):  # QtWidgets.QMainWindow
 
     ####################################################################################################################
     def __init__(self):
-
         # import member modules. Must be done inside __init__ to avoid circular imports
         import signals_and_slots
 
