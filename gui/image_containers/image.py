@@ -139,6 +139,7 @@ class Window(QWidget):
     """
     Simple application window for rendering an image
     """
+
     def __init__(self, image: QImage):
         super(Window, self).__init__()
 
@@ -155,7 +156,7 @@ class Window(QWidget):
 ########################################################################################################################
 if __name__ == '__main__':
 
-    #IMAGE = "data/polarbear.jpg"
+    # IMAGE = "data/polarbear.jpg"
     IMAGE = "data/tiger.png"
     import sys
 
@@ -171,5 +172,3 @@ if __name__ == '__main__':
     w.show()
 
     sys.exit(app.exec_())
-
-
