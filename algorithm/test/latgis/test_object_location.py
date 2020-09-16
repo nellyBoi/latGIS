@@ -1,9 +1,15 @@
-# -*- coding: utf-8 -*-
+"""
+Nelly Kane
+"""
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
 
-import sys, os
+import os
+import sys
 
-sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Tracking'))
-sys.path.append(os.path.join(os.getcwd(),'..','..','Src','Utilities'))
+sys.path.append(os.path.join(filepath, '..'))
+from test_setup import setup
+setup()
 
 
 from latgis.location import CameraData, ObjectLocation

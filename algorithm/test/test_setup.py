@@ -3,9 +3,12 @@ Script to run prior to unit-testing to setup environment
 """
 import sys
 import os
-ROOT = 'C:\\Nelly\\latGIS\\latGIS' # change to users full path of repo
 
-PYTHONPATH_ADDS = [os.path.join(ROOT, 'algorithm')] # add sub-directories as unit tests appear in them
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
+
+ROOT = os.path.join(filepath, '..', '..')
+PYTHONPATH_ADDS = [os.path.join(ROOT, 'algorithm')]  # add sub-directories as unit tests appear in them
 
 
 ########################################################################################################################
@@ -18,6 +21,7 @@ def setup() -> None:
 
             if 'pycache' not in subPath:
                 sys.path.extend(subPath)
+
 
 ########################################################################################################################
 if __name__ == '__main__':

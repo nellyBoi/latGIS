@@ -5,6 +5,16 @@ Nelly Kane
 
 TargetTrackerTest.py
 """
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
+
+import os
+import sys
+
+sys.path.append(os.path.join(filepath, '..'))
+from test_setup import setup
+setup()
+
 from latgis.track import TrackData as td
 from latgis.location import CameraData, ObjectLocation
 

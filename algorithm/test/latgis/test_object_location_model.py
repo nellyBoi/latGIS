@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Created on Sun Jun 24 20:06:30 2018
 
@@ -10,9 +9,19 @@ This unit test will check the 'Object_Location_Model' in which an objects
 movement from image to image is predicted.
 
 """
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
+
+import os
+import sys
+
 import numpy as np
 import unittest
 import matplotlib.pyplot as plt
+
+sys.path.append(os.path.join(filepath, '..'))
+from test_setup import setup
+setup()
 
 from latgis.util.coord_transfers import CoordTransfers
 from latgis.position_predict import ObjectLocationModel

@@ -7,6 +7,15 @@ Created on Sat May 19 01:48:38 2018
 Test driver for running the coord_transfers class. This also serves as a unit test.
 
 """
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
+
+import os
+import sys
+
+sys.path.append(os.path.join(filepath, '..'))
+from test_setup import setup
+setup()
 
 from latgis.util.coord_transfers import CoordTransfers
 

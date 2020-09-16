@@ -5,3 +5,4 @@ Src/StreetViewAPI/ggapikeydoc.py
 RETIRED/*
 venv/
 .idea/
+*__pycache__*

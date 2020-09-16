@@ -1,7 +1,15 @@
-# -*- coding: utf-8 -*-
-import sys, os
-#sys.path.append(os.path.join(sys.path[0], '..', '..', 'Src', 'Tracking'))
-#sys.path.append(os.path.join(sys.path[0], '..', '..', 'Src', 'Utilities'))
+"""
+Nelly Kane
+"""
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
+
+import os
+import sys
+
+sys.path.append(os.path.join(filepath, '..'))
+from test_setup import setup
+setup()
 
 from latgis import track
 from latgis.location import CameraData
@@ -12,9 +20,11 @@ CT = CoordTransfers()
 
 # test pass function
 tol = 1e-6
+
+
 def test(name: str, passed: bool):
     print('Function: ' + name)
-    if (passed == True):
+    if passed:
         print('PASSED')
     else:
         print('FAILED')

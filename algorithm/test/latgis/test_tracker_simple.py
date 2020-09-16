@@ -1,4 +1,15 @@
-import sys, os
+"""
+Nelly Kane
+"""
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
+
+import os
+import sys
+
+sys.path.append(os.path.join(filepath, '..'))
+from test_setup import setup
+setup()
 from latgis.track import TargetTracker
 import numpy as np
 

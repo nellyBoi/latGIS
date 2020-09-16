@@ -25,7 +25,15 @@ later point.
 import unittest
 
 from numpy import array, ndarray, abs
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
 
+import os
+import sys
+
+sys.path.append(os.path.join(filepath, '..'))
+from test_setup import setup
+setup()
 from latgis.util.triangulate import minDistPoint_3D
 
 DOUBLE_TOL = 1e-5
