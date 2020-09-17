@@ -22,7 +22,7 @@ the Street View vehicle. This is often, but not always, flat horizontal.
 Positive values angle the camera up (with 90 degrees indicating straight up); 
 negative values angle the camera down (with -90 indicating straight down).
 
-CLASS DEFINATIONS:
+CLASS DEFINITIONS:
     cameraData:
         LatLonEl: [Latitude (deg), Longitude (deg), Elevation(m)] -> List
         heading:  heading of image (deg or rad)

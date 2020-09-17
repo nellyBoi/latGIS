@@ -114,7 +114,7 @@ class ObjectLocation:
         # increment observation counter
         self.curObs += 1
 
-        if (self.curObs == ObjectLocation.maxObsPerObj):
+        if self.curObs == ObjectLocation.maxObsPerObj:
             print('WARNING: Object list full, increase maximum observations')
             return
 
@@ -123,16 +123,16 @@ class ObjectLocation:
         self.__objectDataArray['pixel'][self.curObs] = pixel
 
         # convert to ENU
-        ObjectLocation.sensor_2_ENU(self)
+        self.sensor_2_ENU()
 
         # get ECEF vector of object location (NOTE: Object can be anywhere on this vector)
-        ObjectLocation.ENU_2_ECEF(self)
+        self.ENU_2_ECEF()
 
         # perform triangulation and get error
-        ObjectLocation.triagulation(self)
+        self.triagulation()
 
         # compute object location Latitude, Longitude, Elevation
-        ObjectLocation.getObjectLLE(self)
+        self.getObjectLLE()
 
         return
 
