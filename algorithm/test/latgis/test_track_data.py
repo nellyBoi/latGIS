@@ -16,7 +16,7 @@ from test_setup import setup
 setup()
 
 from latgis.track import TrackData as td
-from latgis.location import CameraData, ObjectLocation
+from latgis.location import CameraData, ItemLocation
 
 from latgis.util.coord_transfers import CoordTransfers
 CT = CoordTransfers()
@@ -57,7 +57,7 @@ noIds = tdObj1.get_ids() # shouldn't be any IDs yet
 print(noIds)
 
 # testing add to track
-objObj0 = ObjectLocation(origCameraData = camData, origPixel = pixel0)
+objObj0 = ItemLocation(origCameraData = camData, origPixel = pixel0)
 tdObj1.add_track(objectLocation = objObj0)
 print('One ID')
 oneId = tdObj1.get_ids()
@@ -65,7 +65,7 @@ print(oneId)
 
 # adding another track
 camData1 = CameraData(LatLonEl = LatLonEl1, heading = heading1, pitch = pitch1)
-objObj1 = ObjectLocation(origCameraData = camData1, origPixel = pixel1)
+objObj1 = ItemLocation(origCameraData = camData1, origPixel = pixel1)
 tdObj1.add_track(objectLocation = objObj1)
 print('Two IDs')
 twoId = tdObj1.get_ids()

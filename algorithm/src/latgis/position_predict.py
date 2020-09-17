@@ -66,7 +66,7 @@ from latgis.util import rotation
 
 
 ########################################################################################################################
-class ObjectLocationModel:
+class ItemLocationModel:
     """
     TODO: fill this in.
     """
@@ -89,8 +89,8 @@ class ObjectLocationModel:
         self.W_est = W  # (m) : estimated closest dist. to obj. from D vector.
 
     ####################################################################################################################
-    def objectLocationPredictor(self, objRowCol: list, camData1: CameraData, camData2: CameraData,
-                                degFlag: bool = True) -> list:
+    def itemLocationPredictor(self, objRowCol: list, camData1: CameraData, camData2: CameraData,
+                              degFlag: bool = True) -> list:
 
         '''This function will be used to predict the objects location in frame t+1 
         from from knowledge of frame t, various camera parameters and the necessary
@@ -104,8 +104,8 @@ class ObjectLocationModel:
         '''
 
         # transfer Latitude, Longitude to ECEF, converted to arrays
-        frame_t1_ecef = np.asarray(ObjectLocationModel.coordTransfers.LLE_to_ECEF(LLE=camData1.LatLonEl))
-        frame_t2_ecef = np.asarray(ObjectLocationModel.coordTransfers.LLE_to_ECEF(LLE=camData2.LatLonEl))
+        frame_t1_ecef = np.asarray(ItemLocationModel.coordTransfers.LLE_to_ECEF(LLE=camData1.LatLonEl))
+        frame_t2_ecef = np.asarray(ItemLocationModel.coordTransfers.LLE_to_ECEF(LLE=camData2.LatLonEl))
 
         # degrees to radians, if (degFlag == True)
         if (degFlag == 1):

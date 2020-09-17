@@ -12,7 +12,7 @@ from test_setup import setup
 setup()
 
 
-from latgis.location import CameraData, ObjectLocation
+from latgis.location import CameraData, ItemLocation
 from latgis.util.coord_transfers import CoordTransfers
 CT = CoordTransfers()
 

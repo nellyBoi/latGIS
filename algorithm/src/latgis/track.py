@@ -7,8 +7,8 @@ TargetTracker.py
 import numpy as np
 from pandas import DataFrame
 
-from latgis.location import ObjectLocation, CameraData
-from latgis.position_predict import ObjectLocationModel
+from latgis.location import ItemLocation, CameraData
+from latgis.position_predict import ItemLocationModel
 from latgis.util import munkres
 
 
@@ -39,7 +39,7 @@ class TrackData:
         return self.__trackDataFrame[TrackData.TRACK_ID_STRING].values.tolist()
 
     ####################################################################################################################
-    def remove_by_id(self, id_int: int) -> ObjectLocation:
+    def remove_by_id(self, id_int: int) -> ItemLocation:
         """
         Method to remove a track by ID and return it.
         """
@@ -51,7 +51,7 @@ class TrackData:
         return objectLocation
 
     ####################################################################################################################
-    def add_track(self, objectLocation: ObjectLocation) -> None:
+    def add_track(self, objectLocation: ItemLocation) -> None:
         """
         A method to append a new track by ID.
         """
@@ -74,7 +74,7 @@ class TrackData:
         return
 
     ####################################################################################################################
-    def get_data_by_id(self, iD: int) -> ObjectLocation:
+    def get_data_by_id(self, iD: int) -> ItemLocation:
         """
         Method for returning ObjectLocation data by ID.
         """
@@ -148,7 +148,7 @@ class TargetTracker:
         self.gateSize = gateSize  # size of gate in pixels
 
         # instantiate the object motion model
-        self.objectMotion = ObjectLocationModel(W=distToDVec)
+        self.objectMotion = ItemLocationModel(W=distToDVec)
 
         # start Pandas.DataFrames
         self.__currentTrackDataFrame = TrackData(name='CURRENT_TRACKS')
@@ -199,7 +199,7 @@ class TargetTracker:
 
             else:  # begin new track
                 # create new object location object
-                objectLocation = ObjectLocation(origCameraData=curCameraData, origPixel=observations[obsIdx])
+                objectLocation = ItemLocation(origCameraData=curCameraData, origPixel=observations[obsIdx])
                 # create new track
                 self.__currentTrackDataFrame.add_track(objectLocation=objectLocation)
 
@@ -239,8 +239,8 @@ class TargetTracker:
             trkCameraData = trkObject.getRecentCameraData()
             trkPixel = trkObject.getRecentPixel()
 
-            predictedPixel = self.objectMotion.objectLocationPredictor(objRowCol=trkPixel,
-                                                                       camData1=trkCameraData, camData2=newCameraData)
+            predictedPixel = self.objectMotion.itemLocationPredictor(objRowCol=trkPixel,
+                                                                     camData1=trkCameraData, camData2=newCameraData)
 
             predictions.append(predictedPixel)
 

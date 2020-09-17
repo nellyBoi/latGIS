@@ -3,7 +3,7 @@ Created on Sun Jun 24 20:06:30 2018
 
 @author: johnnelsonkane
 
-test_object_location_model.py
+test_item_location_model.py
 
 This unit test will check the 'Object_Location_Model' in which an objects 
 movement from image to image is predicted.
@@ -24,7 +24,7 @@ from test_setup import setup
 setup()
 
 from latgis.util.coord_transfers import CoordTransfers
-from latgis.position_predict import ObjectLocationModel
+from latgis.position_predict import ItemLocationModel
 from latgis.location import CameraData
 
 CT = CoordTransfers()
@@ -60,7 +60,7 @@ class MyTestCase(unittest.TestCase):
 
         objRowCol = [512, 512]
 
-        locModel = ObjectLocationModel(2)
+        locModel = ItemLocationModel(2)
         # We will start in ECEF for distance and convert to LLE for function input.
         ecef1 = np.array((6378137, 0, 0))  # meters
         ecef2 = np.array((6378137, 0, 50))  # meters, due north by 5 meters
@@ -70,17 +70,17 @@ class MyTestCase(unittest.TestCase):
         cam1 = CameraData(LatLonEl=LLE1, heading=0, pitch=0)
         cam2 = CameraData(LatLonEl=LLE2, heading=0, pitch=0)
 
-        PIXELS_OUT = locModel.objectLocationPredictor(objRowCol, cam1, cam2, degFlag=True)
+        PIXELS_OUT = locModel.itemLocationPredictor(objRowCol, cam1, cam2, degFlag=True)
 
         self.assertEqual(np.abs(PIXELS_OUT[0] - objRowCol[0]) < 1, True)
         self.assertEqual(np.abs(PIXELS_OUT[1] - objRowCol[1]) < 1, True)
 
-        plot_results(start_pixel = objRowCol, pixel_out = PIXELS_OUT)
+        plot_results(start_pixel=objRowCol, pixel_out = PIXELS_OUT)
 
     def test_2(self):
         print('TEST 2: Hand calculated pixels for a regular step')
 
-        locModel = ObjectLocationModel(1)
+        locModel = ItemLocationModel(1)
         objRowCol = [454, 454]
 
         # We will start in ECEF for distance and convert to LLE for function input.
@@ -92,7 +92,7 @@ class MyTestCase(unittest.TestCase):
         cam1 = CameraData(LatLonEl=LLE1, heading=0, pitch=0)
         cam2 = CameraData(LatLonEl=LLE2, heading=0, pitch=0)
 
-        PIXELS_OUT = locModel.objectLocationPredictor(objRowCol, cam1, cam2, degFlag=True)
+        PIXELS_OUT = locModel.itemLocationPredictor(objRowCol, cam1, cam2, degFlag=True)
 
         self.assertTrue(np.abs(PIXELS_OUT[0] - 66) < 1)
         self.assertTrue(np.abs(PIXELS_OUT[1] - 66) < 1)
@@ -102,7 +102,7 @@ class MyTestCase(unittest.TestCase):
     def test_3(self):
         print('TEST 3: One more boresite test, nonzero lats and longs')
 
-        locModel = ObjectLocationModel(1)
+        locModel = ItemLocationModel(1)
         objRowCol = [512, 512]
 
         # We will start in ECEF for distance and convert to LLE for function input.
@@ -114,7 +114,7 @@ class MyTestCase(unittest.TestCase):
         cam1 = CameraData(LatLonEl=LLE1, heading=270, pitch=0)
         cam2 = CameraData(LatLonEl=LLE2, heading=270, pitch=0)
 
-        PIXELS_OUT = locModel.objectLocationPredictor(objRowCol, cam1, cam2, degFlag=True)
+        PIXELS_OUT = locModel.itemLocationPredictor(objRowCol, cam1, cam2, degFlag=True)
 
         self.assertTrue(np.abs(PIXELS_OUT[0] - objRowCol[0]) < 1)
         self.assertTrue(np.abs(PIXELS_OUT[1] - objRowCol[1]) < 1)
