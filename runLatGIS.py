@@ -4,7 +4,7 @@
 import os
 import sys
 
-PYTHON_PATH_ADDS = ['algorithm', 'data_collect', 'gui']
+PYTHON_PATH_ADDS = ['backend', 'data_collect', 'gui']
 
 
 ########################################################################################################################
